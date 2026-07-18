@@ -1,0 +1,15 @@
+services:
+  database:
+    image: postgres:16-alpine
+    profiles: ["optional-postgres"]
+    environment:
+      POSTGRES_DB: gofit
+      POSTGRES_USER: gofit
+      POSTGRES_PASSWORD: gofit_dev_only
+    ports:
+      - "5432:5432"
+    volumes:
+      - gofit_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  gofit_postgres_data:
