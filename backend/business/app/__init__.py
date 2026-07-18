@@ -1,0 +1,1 @@
+"""GoFit business center application."""
