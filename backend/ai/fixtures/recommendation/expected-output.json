@@ -1,0 +1,22 @@
+{
+  "requestId": "rec_demo_001",
+  "ruleVersion": "p0-v1",
+  "outcomeCode": "OK",
+  "items": [
+    {
+      "actionCardId": "card_lateral_raise",
+      "reasonCode": "HISTORY_TARGET_FELT",
+      "reasonText": "你之前练这个动作时，目标部位感觉不错。"
+    },
+    {
+      "actionCardId": "card_rear_delt_fly",
+      "reasonCode": "MUSCLE_COVERAGE_COMPLEMENT",
+      "reasonText": "补充当前还没有覆盖的肩后束。"
+    },
+    {
+      "actionCardId": "card_shoulder_press",
+      "reasonCode": "SAME_BODY_REGION",
+      "reasonText": "同样训练肩部，可以作为接下来的候选。"
+    }
+  ]
+}

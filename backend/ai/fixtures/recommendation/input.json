@@ -1,0 +1,69 @@
+{
+  "requestId": "rec_demo_001",
+  "selectedBodyRegion": "SHOULDER",
+  "currentItems": [
+    {
+      "actionCardId": "card_front_raise",
+      "bodyRegion": "SHOULDER",
+      "primaryMuscles": ["DELTOID_ANTERIOR"]
+    }
+  ],
+  "candidates": [
+    {
+      "actionCardId": "card_lateral_raise",
+      "bodyRegion": "SHOULDER",
+      "primaryMuscles": ["DELTOID_LATERAL"],
+      "secondaryMuscles": ["DELTOID_ANTERIOR"],
+      "isSaved": false,
+      "hasTried": true,
+      "contentReady": true,
+      "sourceRisk": false
+    },
+    {
+      "actionCardId": "card_rear_delt_fly",
+      "bodyRegion": "SHOULDER",
+      "primaryMuscles": ["DELTOID_POSTERIOR"],
+      "secondaryMuscles": [],
+      "isSaved": true,
+      "hasTried": false,
+      "contentReady": true,
+      "sourceRisk": false
+    },
+    {
+      "actionCardId": "card_shoulder_press",
+      "bodyRegion": "SHOULDER",
+      "primaryMuscles": ["DELTOID_ANTERIOR"],
+      "secondaryMuscles": [],
+      "isSaved": false,
+      "hasTried": true,
+      "contentReady": true,
+      "sourceRisk": false
+    },
+    {
+      "actionCardId": "card_biceps_curl",
+      "bodyRegion": "ARM",
+      "primaryMuscles": ["BICEPS"],
+      "secondaryMuscles": [],
+      "isSaved": true,
+      "hasTried": false,
+      "contentReady": true,
+      "sourceRisk": false
+    },
+    {
+      "actionCardId": "card_risky_upright_row",
+      "bodyRegion": "SHOULDER",
+      "primaryMuscles": ["DELTOID_LATERAL"],
+      "secondaryMuscles": [],
+      "isSaved": true,
+      "hasTried": false,
+      "contentReady": true,
+      "sourceRisk": true
+    }
+  ],
+  "history": [
+    {"actionCardId": "card_lateral_raise", "feedbackType": "TARGET_FELT"},
+    {"actionCardId": "card_lateral_raise", "feedbackType": "TARGET_FELT"},
+    {"actionCardId": "card_lateral_raise", "feedbackType": "TARGET_FELT"}
+  ],
+  "excludedActionCardIds": []
+}
