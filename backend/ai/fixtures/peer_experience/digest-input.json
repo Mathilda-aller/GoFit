@@ -1,0 +1,58 @@
+{
+  "requestId": "peer_digest_demo_001",
+  "standardAction": {
+    "id": "exercise_lateral_raise",
+    "name": "哑铃侧平举"
+  },
+  "comments": [
+    {
+      "id": "comment_001",
+      "videoId": "video_002",
+      "text": "重量降一点以后肩膀感觉明显多了",
+      "riskType": "NORMAL",
+      "problemTag": "ARMS_FELT_MORE"
+    },
+    {
+      "id": "comment_002",
+      "videoId": "video_003",
+      "text": "先用小重量找发力，不然手臂先累",
+      "riskType": "NORMAL",
+      "problemTag": "ARMS_FELT_MORE"
+    },
+    {
+      "id": "comment_003",
+      "videoId": "video_004",
+      "text": "别拿太重，轻一点更容易找到肩膀发力",
+      "riskType": "NORMAL",
+      "problemTag": "ARMS_FELT_MORE"
+    },
+    {
+      "id": "comment_004",
+      "videoId": "video_002",
+      "text": "想象手肘向两边打开，由手肘带动",
+      "riskType": "NORMAL",
+      "problemTag": "ARMS_FELT_MORE"
+    },
+    {
+      "id": "comment_005",
+      "videoId": "video_003",
+      "text": "别用手腕硬提，让肘部带着手臂走",
+      "riskType": "NORMAL",
+      "problemTag": "ARMS_FELT_MORE"
+    },
+    {
+      "id": "comment_006",
+      "videoId": "video_004",
+      "text": "我也是改成手肘先走以后手臂没那么抢力",
+      "riskType": "NORMAL",
+      "problemTag": "ARMS_FELT_MORE"
+    },
+    {
+      "id": "comment_007",
+      "videoId": "video_005",
+      "text": "肩关节刺痛也硬顶几组就好了",
+      "riskType": "DANGEROUS_ADVICE",
+      "problemTag": "DISCOMFORT"
+    }
+  ]
+}

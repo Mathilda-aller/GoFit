@@ -67,6 +67,8 @@ python -m venv .venv
 GET  http://127.0.0.1:8001/internal/v1/health
 POST http://127.0.0.1:8001/internal/v1/action-cards/build
 POST http://127.0.0.1:8001/internal/v1/recommendations/rank
+POST http://127.0.0.1:8001/internal/v1/peer-experiences/digest
+POST http://127.0.0.1:8001/internal/v1/peer-experiences/match
 ```
 
 业务后端当前默认查找 `http://127.0.0.1:8100`。如果 AI 服务按上面的示例运行在 `8001`，启动业务后端前设置：
@@ -130,6 +132,21 @@ Invoke-RestMethod `
 - 所有候选均不可用时仍返回 HTTP 200，`outcomeCode` 为 `NO_SAFE_CANDIDATE` 且 `items` 为空。
 
 推荐支持两套已出现过的体感编号：`NO_FEELING` 等同于 `NO_CLEAR_FEELING`，`TOO_HARD` 等同于 `TOO_DIFFICULT`。错误的顶层请求契约返回 `INVALID_RECOMMENDATION_REQUEST`；未预期异常返回 `RECOMMENDATION_FAILED`，不会返回 Python 异常内容。
+
+## 练友经验：Mock 评论真实聚类
+
+MVP 不抓取平台评论。固定输入位于 `fixtures/peer_experience/digest-input.json`，其中 `riskType` 和 `problemTag` 已人工校验。默认 `GOFIT_PEER_PROVIDER=fixed-mock`，无需网络即可重复演示完整接口；设置为 `aliyun` 后使用 `text-embedding-v4`（1024 维）和 Qwen Flash 非思考模式。
+
+```dotenv
+GOFIT_PEER_PROVIDER=aliyun
+GOFIT_PEER_API_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
+GOFIT_PEER_API_KEY=你的密钥
+GOFIT_PEER_EMBEDDING_MODEL=text-embedding-v4
+GOFIT_PEER_EMBEDDING_DIMENSIONS=1024
+GOFIT_PEER_SUMMARY_MODEL=qwen-flash
+```
+
+真实链路为：按预置风险标签过滤 → 按问题标签分桶 → Embedding → cosine/average 层次聚类 → Flash 生成组名和一句摘要 → 程序计算评论数、来源数和 ID。模型 API 失败时，主 Demo 动作降级到 `expected-digest.json`，返回的 `providerMode` 为 `fixed-json-fallback`。
 
 ## 校验规则
 

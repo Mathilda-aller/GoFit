@@ -5,6 +5,7 @@ from fastapi.responses import JSONResponse
 from app.api.routes.action_cards import router as action_cards_router
 from app.api.routes.health import router as health_router
 from app.api.routes.recommendations import router as recommendations_router
+from app.api.routes.peer_experiences import router as peer_experiences_router
 from app.errors import SkillError, request_id_from_body
 
 
@@ -17,6 +18,7 @@ app = FastAPI(
 app.include_router(health_router, prefix="/internal/v1")
 app.include_router(action_cards_router, prefix="/internal/v1")
 app.include_router(recommendations_router, prefix="/internal/v1")
+app.include_router(peer_experiences_router, prefix="/internal/v1")
 
 
 @app.exception_handler(SkillError)
@@ -36,6 +38,13 @@ async def handle_request_validation(
         skill_error = SkillError(
             "INVALID_RECOMMENDATION_REQUEST",
             "请求不符合动作推荐契约。",
+            request_id=request_id,
+        )
+        return JSONResponse(status_code=422, content=skill_error.as_response())
+    if request.url.path.startswith("/internal/v1/peer-experiences/"):
+        skill_error = SkillError(
+            "INVALID_PEER_EXPERIENCE_REQUEST",
+            "请求不符合练友经验接口契约。",
             request_id=request_id,
         )
         return JSONResponse(status_code=422, content=skill_error.as_response())
@@ -77,6 +86,14 @@ async def handle_unexpected_error(request: Request, _error: Exception) -> JSONRe
         skill_error = SkillError(
             "RECOMMENDATION_FAILED",
             "动作推荐失败，请继续手动选择动作。",
+            request_id=request.headers.get("X-Request-Id"),
+            retryable=False,
+        )
+        return JSONResponse(status_code=500, content=skill_error.as_response())
+    if request.url.path.startswith("/internal/v1/peer-experiences/"):
+        skill_error = SkillError(
+            "PEER_EXPERIENCE_FAILED",
+            "练友经验整理失败，暂时只展示原评论。",
             request_id=request.headers.get("X-Request-Id"),
             retryable=False,
         )
