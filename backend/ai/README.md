@@ -2,19 +2,19 @@
 
 AI 中心只负责把业务后端提供的来源材料整理为结构化结果。业务后端负责校验业务规则、保存数据，并向前端提供接口。
 
-当前实现包含两项独立能力：`FitnessVideoToActionCardSkill` 接收已经完成时间对齐的语音、画面文字和画面理解证据，生成一张可追溯的视频动作卡；`RecommendationRanker` 根据业务后端提供的练单上下文执行可解释的规则推荐。两者都不访问业务数据库。
+当前实现包含四项独立能力：`FitnessVideoReconstructionWorkflow` 把原始视频加工为对齐证据；`FitnessVideoToActionCardSkill` 把证据生成可追溯的双面动作卡；`PeerExperienceService` 对 Mock 评论执行真实向量聚类、摘要和体感召回；`RecommendationRanker` 根据业务后端提供的练单上下文执行可解释的规则推荐。它们都不访问业务数据库。
 
 ## 当前链路
 
 ```text
-后续 Workflow：原视频 → ASR / OCR / 画面理解 → 时间对齐
+原视频 → ASR / OCR / 画面理解 → 时间对齐 → 媒体候选
                                       ↓
 业务后端提供标准动作候选 → FitnessVideoToActionCardSkill
                                       ↓
-                         校验后的动作卡 → 业务后端保存
+                    双面动作卡和媒体文件 → 业务后端保存
 ```
 
-本阶段使用固定假模型，只支持 `video_lateral_raise_demo`。未知视频会明确返回 `MOCK_FIXTURE_NOT_FOUND`，不会伪装成真实 AI 结果。
+证据到动作卡接口可以显式使用固定侧平举假模型。原始视频 Workflow 默认使用阿里云 DashScope；配置一个 API Key、三个模型名和 FFmpeg 后才会调用真实模型。
 
 ## 动作卡的正反面
 
@@ -108,6 +108,82 @@ skill = FitnessVideoToActionCardSkill(FixedFixtureActionCardGenerator())
 result = skill.execute(request)
 ```
 
+## 第二阶段：从原始视频生成动作卡
+
+`FitnessVideoReconstructionWorkflow` 已实现以下流程：
+
+```text
+原始视频
+→ FFmpeg 提取音频和等间隔画面
+→ ASR 生成带时间口播
+→ 视觉模型理解动作画面并补充 OCR 文字
+→ 组装 ASR / OCR / VISION 证据
+→ 找出正确示范、错误示范和封面候选
+→ FFmpeg 精确输出媒体文件
+→ 调用 FitnessVideoToActionCardSkill
+→ 返回双面动作卡
+```
+
+### 配置模型
+
+复制示例配置，真实 `.env` 已被 Git 忽略：
+
+```powershell
+Copy-Item .env.example .env
+```
+
+P0 主链全部使用阿里云百炼 DashScope。只需要填写：
+
+```dotenv
+DASHSCOPE_API_KEY=你的百炼 API Key
+GOFIT_ASR_MODEL=qwen3-asr-flash
+GOFIT_OCR_MODEL=qwen3.5-ocr
+GOFIT_VISION_MODEL=qwen3.6-plus
+GOFIT_ACTION_CARD_MODEL=qwen-flash
+```
+
+VLM、独立 OCR 和动作卡文本模型使用 DashScope OpenAI 兼容 `chat/completions`；短音频 ASR 使用同一 API Key 调用 DashScope `multimodal-generation`，本地 WAV 以 Base64 Data URI 上传。OCR 只读取画面文字，VLM 负责动作阶段和候选片段，动作卡文本模型负责证据约束整理。
+
+默认地址分别为 `https://dashscope.aliyuncs.com/compatible-mode/v1` 和 `https://dashscope.aliyuncs.com/api/v1`。只有账号使用特定地域或 Workspace 地址时，才需要设置 `DASHSCOPE_COMPATIBLE_BASE_URL` 与 `DASHSCOPE_NATIVE_BASE_URL`。
+
+本机还必须安装 FFmpeg，并确保 `ffmpeg` 和 `ffprobe` 可以在命令行运行；也可以在 `.env` 中填写它们的完整路径。
+
+### 命令行处理视频
+
+主 Demo 已人工确认是“哑铃侧平举”。请求省略 `standardActionCandidates` 时，会自动注入唯一候选 `action_lateral_raise`，模型不再负责动作识别或多候选选择。仓库根目录已经包含对应的 Demo 视频，可直接使用 [`fixtures/video_workflow/request.example.json`](fixtures/video_workflow/request.example.json) 跑通链路；替换为自己的视频时，只需修改请求中的 `videoPath`。
+
+```powershell
+python -m app.cli process-video `
+  --input fixtures/video_workflow/request.example.json `
+  --output tmp/video-workflow-result.json
+```
+
+结果包含：
+
+- `actionCardRequest`：Workflow 生成的对齐证据，也就是第一阶段 Skill 的输入；
+- `actionCardResult`：双面动作卡；
+- `mediaArtifacts`：FFmpeg 输出的封面或循环视频文件位置。
+
+### 业务后端创建处理任务
+
+长时间模型调用不会放在普通同步请求里。业务后端使用：
+
+```text
+POST /internal/v1/action-card-jobs
+GET  /internal/v1/action-card-jobs/{jobId}
+```
+
+`POST` 请求体与 `request.example.json` 相同。重复提交同一个 `requestId` 不会重复执行。查询接口会返回：
+
+```text
+QUEUED     任务已创建
+RUNNING    正在理解视频内容 / 正在定位关键片段 / 正在整理动作要点
+COMPLETED  动作卡已生成
+FAILED     返回安全、可读的失败原因
+```
+
+当前任务状态保存在 AI 服务内存中，服务重启后会丢失，适合本地 Hackathon MVP。正式持久化和状态恢复仍由业务后端负责。
+
 ## 练单助手动作推荐
 
 推荐接口是同步的纯规则计算，不调用大模型，也不会写入或修改当前练单。业务后端负责准备候选卡、收藏、历史体感和仍在屏蔽期的不感兴趣 ID。
@@ -184,6 +260,13 @@ NO_STANDARD_ACTION_CANDIDATES
 UNKNOWN_EVIDENCE_REFERENCE
 MOCK_FIXTURE_NOT_FOUND
 OUTPUT_VALIDATION_FAILED
+MODEL_CONFIGURATION_MISSING
+MODEL_API_FAILED
+FFMPEG_NOT_FOUND
+VIDEO_FILE_NOT_FOUND
+NO_SPEECH_EVIDENCE
+NO_CORRECT_DEMO_CANDIDATE
+ACTION_CARD_JOB_NOT_FOUND
 ```
 
 ## 测试
@@ -192,5 +275,3 @@ OUTPUT_VALIDATION_FAILED
 cd backend/ai
 .venv\Scripts\python -m pytest
 ```
-
-原始视频异步入口 `POST /internal/v1/action-card-jobs` 留到下一阶段实现。届时 Workflow 完成 ASR、OCR、画面理解和时间对齐后，再调用本阶段的 Skill。

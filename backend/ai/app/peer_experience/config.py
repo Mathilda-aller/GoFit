@@ -3,6 +3,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from functools import lru_cache
 import os
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+
+AI_ROOT = Path(__file__).resolve().parents[2]
 
 
 @dataclass(frozen=True)
@@ -18,13 +24,17 @@ class PeerExperienceSettings:
 
 @lru_cache
 def get_peer_experience_settings() -> PeerExperienceSettings:
+    load_dotenv(AI_ROOT / ".env", override=False)
     return PeerExperienceSettings(
-        provider=os.getenv("GOFIT_PEER_PROVIDER", "fixed-mock"),
+        provider=os.getenv("GOFIT_PEER_PROVIDER", "aliyun"),
         api_base_url=os.getenv(
             "GOFIT_PEER_API_BASE_URL",
             "https://dashscope.aliyuncs.com/compatible-mode/v1",
         ).rstrip("/"),
-        api_key=os.getenv("GOFIT_PEER_API_KEY", ""),
+        api_key=(
+            os.getenv("GOFIT_PEER_API_KEY")
+            or os.getenv("DASHSCOPE_API_KEY", "")
+        ),
         embedding_model=os.getenv(
             "GOFIT_PEER_EMBEDDING_MODEL",
             "text-embedding-v4",

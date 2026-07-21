@@ -2,6 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
+from app.api.routes.action_card_jobs import router as action_card_jobs_router
 from app.api.routes.action_cards import router as action_cards_router
 from app.api.routes.health import router as health_router
 from app.api.routes.recommendations import router as recommendations_router
@@ -17,13 +18,15 @@ app = FastAPI(
 
 app.include_router(health_router, prefix="/internal/v1")
 app.include_router(action_cards_router, prefix="/internal/v1")
+app.include_router(action_card_jobs_router, prefix="/internal/v1")
 app.include_router(recommendations_router, prefix="/internal/v1")
 app.include_router(peer_experiences_router, prefix="/internal/v1")
 
 
 @app.exception_handler(SkillError)
 async def handle_skill_error(_request: Request, error: SkillError) -> JSONResponse:
-    status_code = 404 if error.code == "MOCK_FIXTURE_NOT_FOUND" else 422
+    not_found_codes = {"MOCK_FIXTURE_NOT_FOUND", "ACTION_CARD_JOB_NOT_FOUND"}
+    status_code = 404 if error.code in not_found_codes else 422
     return JSONResponse(status_code=status_code, content=error.as_response())
 
 
@@ -45,6 +48,13 @@ async def handle_request_validation(
         skill_error = SkillError(
             "INVALID_PEER_EXPERIENCE_REQUEST",
             "请求不符合练友经验接口契约。",
+            request_id=request_id,
+        )
+        return JSONResponse(status_code=422, content=skill_error.as_response())
+    if request.url.path == "/internal/v1/action-card-jobs":
+        skill_error = SkillError(
+            "INVALID_VIDEO_WORKFLOW_REQUEST",
+            "视频处理任务请求不符合约定格式。",
             request_id=request_id,
         )
         return JSONResponse(status_code=422, content=skill_error.as_response())

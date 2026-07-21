@@ -4,6 +4,7 @@ import pytest
 from pydantic import ValidationError
 
 from app.models.action_card import ActionCardBuildRequest, ActionCardBuildResult
+from app.models.video_workflow import VideoWorkflowRequest
 
 
 def test_unknown_input_field_is_rejected(input_payload: dict) -> None:
@@ -60,3 +61,24 @@ def test_peer_experience_cannot_be_mixed_into_card(expected_payload: dict) -> No
 
     with pytest.raises(ValidationError):
         ActionCardBuildResult.model_validate(payload)
+
+
+def test_raw_video_demo_defaults_to_confirmed_lateral_raise() -> None:
+    request = VideoWorkflowRequest.model_validate(
+        {
+            "requestId": "demo_default_action",
+            "sourceVideo": {
+                "videoId": "video_demo_001",
+                "title": "哑铃侧平举教学 Demo",
+                "creatorName": "GoFit Demo Coach",
+                "sourceUrl": "https://example.test/videos/demo",
+            },
+            "videoPath": "../../storage/demo-video.mp4",
+        }
+    )
+
+    assert len(request.standard_action_candidates) == 1
+    candidate = request.standard_action_candidates[0]
+    assert candidate.standard_action_id == "action_lateral_raise"
+    assert candidate.name == "哑铃侧平举"
+    assert candidate.primary_muscles == ["三角肌中束"]

@@ -1,9 +1,21 @@
 import copy
 
+import pytest
 from fastapi.testclient import TestClient
 
 from app.api.routes.action_cards import get_skill
 from app.main import app
+from app.providers.fake import FixedFixtureActionCardGenerator
+from app.skills.fitness_video_to_action_card import FitnessVideoToActionCardSkill
+
+
+@pytest.fixture(autouse=True)
+def use_fixed_action_card_provider():
+    app.dependency_overrides[get_skill] = lambda: FitnessVideoToActionCardSkill(
+        FixedFixtureActionCardGenerator()
+    )
+    yield
+    app.dependency_overrides.clear()
 
 
 def test_health_endpoint() -> None:
@@ -92,4 +104,3 @@ def test_unexpected_exception_is_not_exposed(input_payload: dict) -> None:
     assert response.status_code == 500
     assert "secret" not in response.text
     assert response.json()["error"]["code"] == "OUTPUT_VALIDATION_FAILED"
-

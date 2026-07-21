@@ -1,9 +1,11 @@
 import json
 from pathlib import Path
 
+import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app
+from app.peer_experience.config import get_peer_experience_settings
 from app.errors import SkillError
 from app.models.peer_experience import PeerExperienceDigestRequest, PeerExperienceDigestResult
 from app.peer_experience.providers import FixedMockPeerProvider
@@ -11,6 +13,14 @@ from app.peer_experience.service import PeerExperienceService
 
 
 FIXTURE_DIR = Path(__file__).resolve().parents[1] / "fixtures" / "peer_experience"
+
+
+@pytest.fixture(autouse=True)
+def use_fixed_provider_for_contract_tests(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("GOFIT_PEER_PROVIDER", "fixed-mock")
+    get_peer_experience_settings.cache_clear()
+    yield
+    get_peer_experience_settings.cache_clear()
 
 
 def _fixture(name: str) -> dict:

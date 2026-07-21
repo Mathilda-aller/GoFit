@@ -6,6 +6,7 @@ from app.models.peer_experience import (
     PeerExperienceMatchRequest,
     PeerExperienceMatchResult,
 )
+from app.models.video_workflow import VideoWorkflowRequest, VideoWorkflowResult
 
 __all__ = [
     "ActionCardBuildRequest",
@@ -16,4 +17,6 @@ __all__ = [
     "PeerExperienceDigestResult",
     "PeerExperienceMatchRequest",
     "PeerExperienceMatchResult",
+    "VideoWorkflowRequest",
+    "VideoWorkflowResult",
 ]
