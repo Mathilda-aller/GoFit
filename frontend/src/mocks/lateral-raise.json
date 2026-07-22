@@ -79,6 +79,18 @@
             "evidenceIds": ["asr_error", "vision_error"]
           },
           "evidenceIds": ["asr_error", "vision_error"]
+        },
+        {
+          "mistake": "下放过快，突然卸力。",
+          "correction": "保持肩部张力，用大约 2 秒缓慢下放，不要让哑铃直接掉下来。",
+          "errorDemo": {
+            "kind": "ERROR_DEMO",
+            "candidateId": "error_fast_lowering",
+            "startMs": 16000,
+            "endMs": 21000,
+            "evidenceIds": ["asr_lower"]
+          },
+          "evidenceIds": ["asr_lower"]
         }
       ]
     },

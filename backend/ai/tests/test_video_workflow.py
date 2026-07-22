@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
@@ -300,3 +301,14 @@ def test_ffmpeg_missing_has_clear_error(tmp_path: Path) -> None:
         processor.probe_duration_ms(tmp_path / "video.mp4", request_id="test")
 
     assert caught.value.code == "FFMPEG_NOT_FOUND"
+
+
+def test_shoulder_back_demo_manifest_has_ten_valid_workflow_requests() -> None:
+    manifest_path = Path(__file__).parents[1] / "fixtures" / "video_workflow" / "shoulder-back-demo.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    requests = [VideoWorkflowRequest.model_validate(item) for item in manifest["requests"]]
+
+    assert len(requests) == 10
+    assert len({item.source_video.video_id for item in requests}) == 10
+    assert sum(item.standard_action_candidates[0].body_region == "肩部" for item in requests) == 5
+    assert sum(item.standard_action_candidates[0].body_region == "背部" for item in requests) == 5

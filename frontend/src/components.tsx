@@ -47,16 +47,20 @@ export function PageHeader({
 }) {
   const navigate = useNavigate();
   return (
-    <header className="page-header">
-      {back ? (
-        <button className="icon-button" onClick={() => navigate(-1)} aria-label="返回">
-          <ArrowLeft size={20} />
-        </button>
-      ) : (
-        <Brand />
-      )}
+    <header className="page-header page-header--centered">
+      <div className="page-header__side page-header__side--start">
+        {back ? (
+          <button className="icon-button" onClick={() => navigate(-1)} aria-label="返回">
+            <ArrowLeft size={20} />
+          </button>
+        ) : (
+          <Brand />
+        )}
+      </div>
       {back ? <h1 className="page-header__title">{title}</h1> : null}
-      {action ?? <span style={{ width: 44 }} aria-hidden="true" />}
+      <div className="page-header__side page-header__side--end">
+        {action ?? <span className="page-header__placeholder" aria-hidden="true" />}
+      </div>
     </header>
   );
 }
@@ -146,7 +150,15 @@ type ClipRange = {
   endMs: number;
 };
 
-function LoopingClip({ clip, label }: { clip: ClipRange; label: string }) {
+function LoopingClip({
+  clip,
+  label,
+  caption = "正确示范",
+}: {
+  clip: ClipRange;
+  label: string;
+  caption?: string;
+}) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [portrait, setPortrait] = useState(true);
   const startSeconds = clip.startMs / 1000;
@@ -182,7 +194,7 @@ function LoopingClip({ clip, label }: { clip: ClipRange; label: string }) {
           }
         }}
       />
-      <figcaption><span>原视频片段</span><TimeRange startMs={clip.startMs} endMs={clip.endMs} /></figcaption>
+      <figcaption>{caption}</figcaption>
     </figure>
   );
 }
@@ -226,45 +238,75 @@ export function MuscleMap({ primary, secondary }: { primary: string[]; secondary
   );
 }
 
+export function TrainingDataView({
+  response,
+  footerLabel,
+  footerAction,
+}: {
+  response: ActionCardResponse;
+  footerLabel?: string;
+  footerAction?: ReactNode;
+}) {
+  const card = response.actionCard;
+  const cueSteps = card.trainingSide.quickCue.text.split("→").map((step) => step.trim());
+  return (
+    <div className="training-data-view">
+      <section className="training-action-header">
+        <h1>{card.actionName}</h1>
+        <p>来自 {card.sourceVideo.creatorName}</p>
+      </section>
+
+      <div className="training-content">
+        <LoopingClip
+          clip={card.learningSide.correctDemo}
+          label={`${card.actionName}正确动作演示`}
+          caption="正确示范"
+        />
+        <p className="training-cue-line" aria-label={card.trainingSide.quickCue.text}>
+          <span className="cue-sequence" aria-hidden="true">
+            <span className="cue-slider" />
+            {cueSteps.map((step, index) => (
+              <span className="cue-stage" key={`${step}-${index}`}>
+                <span className="cue-phrase">{step}</span>
+                {index < cueSteps.length - 1 ? <span className="cue-arrow">→</span> : null}
+              </span>
+            ))}
+          </span>
+        </p>
+        <ul className="training-tips">
+          {card.trainingSide.quickTips.map((tip) => (
+            <li key={tip.text}>
+              <Check size={17} aria-hidden="true" />
+              <strong>{tip.text}</strong>
+            </li>
+          ))}
+        </ul>
+        {footerLabel && footerAction ? (
+          <div className="training-detail-row">
+            <span>{footerLabel}</span>
+            {footerAction}
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 export function ActionCardContent({
   response,
   mode,
+  quickFooter,
 }: {
   response: ActionCardResponse;
   mode: "learn" | "quick";
+  quickFooter?: {
+    label: string;
+    action: ReactNode;
+  };
 }) {
   const card = response.actionCard;
   if (mode === "quick") {
-    return (
-      <div className="quick-card-flow">
-        <header className="quick-card-title">
-          <h1>{card.actionName}</h1>
-          <span className="chip chip--accent">#{card.primaryMuscles[0]}</span>
-        </header>
-
-        <section className="quick-cue-block" aria-label="动作暗号">
-          <div className="cue">{card.trainingSide.quickCue.text}</div>
-        </section>
-
-        <div className="quick-loop">
-          <LoopingClip clip={card.trainingSide.loopDemo} label={`${card.actionName}标准动作循环演示`} />
-        </div>
-
-        <section className="quick-notes" aria-labelledby="quick-notes-title">
-          <div className="quick-notes__heading">
-            <h2 id="quick-notes-title">KEEP IN MIND:</h2>
-          </div>
-          <ul>
-            {card.trainingSide.quickTips.map((tip, index) => (
-              <li key={tip.text}>
-                <span>{index + 1}</span>
-                <strong>{tip.text}</strong>
-              </li>
-            ))}
-          </ul>
-        </section>
-      </div>
-    );
+    return <TrainingDataView response={response} footerLabel={quickFooter?.label} footerAction={quickFooter?.action} />;
   }
 
   return (
@@ -310,17 +352,39 @@ export function ActionCardContent({
 
           <section className="learn-module learn-module--errors">
             <div className="section-heading"><div><p className="eyebrow">03</p><h2>错误纠正</h2></div></div>
-            {card.learningSide.commonErrors.map((error) => (
-              <article className="error-correction" key={error.mistake}>
-                <LoopingClip clip={error.errorDemo} label={`${card.actionName}错误动作演示`} />
-                <div className="error-correction__copy">
-                  <span className="error-label"><TriangleAlert size={14} />常见错误</span>
-                  <h3>{error.mistake}</h3>
-                  <p><strong>这样调整：</strong>{error.correction}</p>
-                  <TimeRange startMs={error.errorDemo.startMs} endMs={error.errorDemo.endMs} />
-                </div>
-              </article>
-            ))}
+            <div className="error-evidence-heading">
+              <div><strong>错误片段</strong><p>从原视频定位到 {card.learningSide.commonErrors.length} 段</p></div>
+              {card.learningSide.commonErrors.length > 1 ? <span>左右滑动查看</span> : null}
+            </div>
+            <div className="error-clip-track" aria-label={`错误片段，共 ${card.learningSide.commonErrors.length} 段`}>
+              {card.learningSide.commonErrors.map((error, index) => (
+                <LoopingClip
+                  key={error.errorDemo.candidateId}
+                  clip={error.errorDemo}
+                  label={`${card.actionName}错误动作演示：${error.mistake}`}
+                  caption={`错误示范 ${String(index + 1).padStart(2, "0")}`}
+                />
+              ))}
+            </div>
+
+            <div className="error-findings">
+              <div className="error-findings__heading">
+                <span className="error-label"><TriangleAlert size={15} />常见错误</span>
+                <span className="chip">{card.learningSide.commonErrors.length} 项</span>
+              </div>
+              <div className="error-list">
+                {card.learningSide.commonErrors.map((error, index) => (
+                  <article className="error-correction" key={error.mistake}>
+                    <span className="error-correction__index">{String(index + 1).padStart(2, "0")}</span>
+                    <div className="error-correction__copy">
+                      <h3>{error.mistake}</h3>
+                      <p><strong>这样调整：</strong>{error.correction}</p>
+                      <TimeRange startMs={error.errorDemo.startMs} endMs={error.errorDemo.endMs} />
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </div>
           </section>
       </div>
     </>
@@ -332,12 +396,12 @@ export function AddToPlanDialog({ cardId, children }: { cardId: string; children
   const addCardToPlan = useAppStore((state) => state.addCardToPlan);
   const createPlan = useAppStore((state) => state.createPlan);
   const navigate = useNavigate();
-  const choose = (planId: string) => {
-    addCardToPlan(planId, cardId);
+  const choose = async (planId: string) => {
+    await addCardToPlan(planId, cardId);
     navigate(`/plans/${planId}`);
   };
-  const create = () => {
-    const planId = createPlan("今天练肩", cardId);
+  const create = async () => {
+    const planId = await createPlan("今天练肩", cardId);
     navigate(`/plans/${planId}`);
   };
   return (
@@ -352,14 +416,14 @@ export function AddToPlanDialog({ cardId, children }: { cardId: string; children
           <div className="option-list">
             {plans.map((plan) => (
               <Dialog.Close asChild key={plan.id}>
-                <button className="option-button" onClick={() => choose(plan.id)}>
+                <button className="option-button" onClick={() => void choose(plan.id)}>
                   <span><strong>{plan.name}</strong><br /><small className="muted">{plan.cardIds.length} 个动作</small></span>
                   <ChevronRight size={18} />
                 </button>
               </Dialog.Close>
             ))}
             <Dialog.Close asChild>
-              <button className="option-button" onClick={create}>
+              <button className="option-button" onClick={() => void create()}>
                 <span><strong>新建“今天练肩”</strong><br /><small className="muted">从这张卡开始</small></span>
                 <Plus size={18} />
               </button>

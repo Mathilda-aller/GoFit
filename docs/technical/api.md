@@ -7,6 +7,7 @@ The frontend talks only to the business center. All routes are versioned under
 
 ```text
 GET /api/v1/health
+GET /api/v1/media/videos/{file_name}
 
 POST /api/v1/videos/import
 GET  /api/v1/videos/{video_id}/processing
@@ -25,6 +26,7 @@ DELETE /api/v1/plans/{plan_id}/items/{item_id}
 
 POST  /api/v1/plans/{plan_id}/sessions
 GET   /api/v1/sessions/{session_id}
+POST  /api/v1/sessions/{session_id}/end
 PATCH /api/v1/sessions/{session_id}/items/{item_id}
 POST  /api/v1/sessions/{session_id}/feedback
 
@@ -42,7 +44,8 @@ use camelCase.
 
 ```json
 {
-  "videoId": "video_lateral_raise"
+  "videoId": "video_lateral_raise",
+  "assetFileName": "01-lateral-raise.mp4"
 }
 ```
 

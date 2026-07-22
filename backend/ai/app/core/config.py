@@ -61,6 +61,10 @@ class AISettings:
 @lru_cache
 def get_settings() -> AISettings:
     load_dotenv(AI_ROOT / ".env", override=False)
+    dashscope_base_url = os.getenv(
+        "DASHSCOPE_BASE_URL",
+        "https://dashscope.aliyuncs.com",
+    ).rstrip("/")
     output_value = os.getenv(
         "GOFIT_MEDIA_OUTPUT_DIR",
         "../../storage/ai-generated",
@@ -72,12 +76,12 @@ def get_settings() -> AISettings:
     return AISettings(
         api_base_url=os.getenv(
             "DASHSCOPE_COMPATIBLE_BASE_URL",
-            "https://dashscope.aliyuncs.com/compatible-mode/v1",
+            f"{dashscope_base_url}/compatible-mode/v1",
         ).rstrip("/"),
         api_key=os.getenv("DASHSCOPE_API_KEY", ""),
         asr_api_base_url=os.getenv(
             "DASHSCOPE_NATIVE_BASE_URL",
-            "https://dashscope.aliyuncs.com/api/v1",
+            f"{dashscope_base_url}/api/v1",
         ).rstrip("/"),
         asr_model=os.getenv("GOFIT_ASR_MODEL", "qwen3-asr-flash"),
         ocr_model=os.getenv("GOFIT_OCR_MODEL", ""),

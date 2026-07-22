@@ -1,195 +1,218 @@
 import rawLateralRaise from "./lateral-raise.json";
+import frontRaiseCover from "./covers/front-raise.webp";
+import lateralRaiseCover from "./covers/lateral-raise.webp";
+import reverseFlyCover from "./covers/reverse-fly.webp";
+import shoulderPressCover from "./covers/shoulder-press.webp";
 import {
   actionCardResponseSchema,
   type ActionCardResponse,
   type ExperienceGroup,
 } from "../domain";
+import {
+  demoCatalog,
+  relatedPeerComments,
+  videoWorkflowRequests,
+  type DemoCatalogItem,
+  type DemoComment,
+} from "./demo-catalog";
 
-const lateralRaise = actionCardResponseSchema.parse(rawLateralRaise);
+export { demoCatalog, videoWorkflowRequests } from "./demo-catalog";
+export type { DemoCatalogItem, DemoComment } from "./demo-catalog";
 
-function variant(
-  base: ActionCardResponse,
-  values: {
-    requestId: string;
-    standardActionId: string;
-    videoId: string;
-    title: string;
-    creator: string;
-    actionName: string;
-    bodyRegion: string;
-    primary: string[];
-    secondary: string[];
-    equipment: string[];
-    cue: string;
-    tips: string[];
-  },
-): ActionCardResponse {
-  return {
-    ...structuredClone(base),
-    requestId: values.requestId,
+export const demoVideoUrl = "/api/v1/media/videos/01-lateral-raise.mp4";
+
+const lateralRaiseTemplate = actionCardResponseSchema.parse(rawLateralRaise);
+
+function evidenceId(item: DemoCatalogItem, suffix: string) {
+  return `${item.video.videoId}_${suffix}`;
+}
+
+function actionCardFromCatalog(item: DemoCatalogItem, index: number): ActionCardResponse {
+  const stepDuration = 7000;
+  const steps = item.card.steps.map((instruction, stepIndex) => {
+    const startMs = 3000 + stepIndex * stepDuration;
+    return {
+      order: stepIndex + 1,
+      instruction,
+      startMs,
+      endMs: startMs + stepDuration - 1000,
+      evidenceIds: [evidenceId(item, `step_${stepIndex + 1}`)],
+    };
+  });
+  const demoStartMs = steps[0]?.startMs ?? 3000;
+  const demoEndMs = steps.at(-1)?.endMs ?? 21000;
+  const demoEvidenceIds = steps.flatMap((step) => step.evidenceIds);
+  const correctDemo = {
+    kind: "CORRECT_DEMO" as const,
+    candidateId: evidenceId(item, "correct_demo"),
+    startMs: demoStartMs,
+    endMs: demoEndMs,
+    evidenceIds: demoEvidenceIds,
+  };
+  const errorStartMs = demoEndMs + 1000;
+  const catalogErrors = [
+    { mistake: item.card.mistake, correction: item.card.correction },
+    ...(item.card.additionalErrors ?? []),
+  ];
+
+  return actionCardResponseSchema.parse({
+    ...structuredClone(lateralRaiseTemplate),
+    requestId: `demo_action_card_${String(index + 1).padStart(3, "0")}`,
     standardAction: {
-      standardActionId: values.standardActionId,
+      standardActionId: item.exerciseId,
       confidence: 0.96,
       decision: "MATCHED",
     },
     actionCard: {
-      ...structuredClone(base.actionCard),
       sourceVideo: {
-        videoId: values.videoId,
-        title: values.title,
-        creatorName: values.creator,
-        sourceUrl: `https://example.test/videos/${values.videoId}`,
+        videoId: item.video.videoId,
+        title: item.video.title,
+        creatorName: item.video.creatorName,
+        sourceUrl: item.video.sourceUrl,
       },
-      actionName: values.actionName,
-      bodyRegion: values.bodyRegion,
-      primaryMuscles: values.primary,
-      secondaryMuscles: values.secondary,
-      equipment: values.equipment,
+      actionName: item.actionName,
+      bodyRegion: item.bodyRegion,
+      primaryMuscles: item.primaryMuscles,
+      secondaryMuscles: item.secondaryMuscles,
+      equipment: item.equipment,
+      learningSide: {
+        correctDemo,
+        steps,
+        keyReminders: [{
+          text: item.card.reminder,
+          evidenceIds: [evidenceId(item, "reminder")],
+        }],
+        commonErrors: catalogErrors.map((error, errorIndex) => {
+          const evidenceIds = [evidenceId(item, `error_${errorIndex + 1}`)];
+          const startMs = errorStartMs + errorIndex * 6000;
+          return {
+            mistake: error.mistake,
+            correction: error.correction,
+            errorDemo: {
+              kind: "ERROR_DEMO" as const,
+              candidateId: evidenceId(item, `error_demo_${errorIndex + 1}`),
+              startMs,
+              endMs: startMs + 5000,
+              evidenceIds,
+            },
+            evidenceIds,
+          };
+        }),
+      },
       trainingSide: {
-        ...structuredClone(base.actionCard.trainingSide),
+        loopDemo: correctDemo,
         quickCue: {
-          text: values.cue,
-          evidenceIds: ["asr_setup", "asr_raise", "asr_lower"],
+          text: item.card.cue,
+          evidenceIds: demoEvidenceIds,
         },
-        quickTips: values.tips.map((text, index) => ({
+        quickTips: item.card.tips.map((text, tipIndex) => ({
           text,
-          evidenceIds: [`asr_tip_${index + 1}`],
+          evidenceIds: [evidenceId(item, `tip_${tipIndex + 1}`)],
         })),
       },
     },
-  };
+    provider: { name: "demo-catalog", version: "1.0.0" },
+  });
 }
 
-export const actionCards: Record<string, ActionCardResponse> = {
-  video_lateral_raise_demo: lateralRaise,
-  video_front_raise_demo: variant(lateralRaise, {
-    requestId: "demo_action_card_002",
-    standardActionId: "action_front_raise",
-    videoId: "video_front_raise_demo",
-    title: "前平举，肩前束这样找感觉",
-    creator: "阿元练肩",
-    actionName: "哑铃前平举",
-    bodyRegion: "肩部",
-    primary: ["三角肌前束"],
-    secondary: ["三角肌中束"],
-    equipment: ["哑铃"],
-    cue: "核心稳 → 向前抬 → 控制落",
-    tips: ["身体不要后仰。", "抬至接近肩高。", "下放保持控制。"],
-  }),
-  video_reverse_fly_demo: variant(lateralRaise, {
-    requestId: "demo_action_card_003",
-    standardActionId: "action_reverse_fly",
-    videoId: "video_reverse_fly_demo",
-    title: "反向飞鸟，别让斜方肌抢活",
-    creator: "小贺的训练笔记",
-    actionName: "俯身反向飞鸟",
-    bodyRegion: "肩部",
-    primary: ["三角肌后束"],
-    secondary: ["斜方肌中部"],
-    equipment: ["哑铃"],
-    cue: "俯身稳 → 向外展 → 慢慢收",
-    tips: ["背部保持稳定。", "手肘向外展开。", "避免耸肩。"],
-  }),
-  video_shoulder_press_demo: variant(lateralRaise, {
-    requestId: "demo_action_card_004",
-    standardActionId: "action_shoulder_press",
-    videoId: "video_shoulder_press_demo",
-    title: "坐姿推肩，新手稳定版本",
-    creator: "GoFit Demo Coach",
-    actionName: "坐姿哑铃推肩",
-    bodyRegion: "肩部",
-    primary: ["三角肌前束"],
-    secondary: ["三角肌中束", "肱三头肌"],
-    equipment: ["哑铃", "训练凳"],
-    cue: "背贴稳 → 向上推 → 稳稳落",
-    tips: ["腰背贴住靠垫。", "不要锁死手肘。", "回落到舒适位置。"],
-  }),
+export const actionCards: Record<string, ActionCardResponse> = Object.fromEntries(
+  demoCatalog.map((item, index) => [item.cardId, actionCardFromCatalog(item, index)]),
+);
+
+export const cardIds = demoCatalog.map((item) => item.cardId);
+
+export type DemoVideo = {
+  videoId: string;
+  title: string;
+  creatorName: string;
+  actionName: string;
+  bodyRegion: string;
+  durationLabel: string;
+  previewUrl: string;
+  previewSecond: number;
+  posterUrl?: string;
+  assetFileName: string;
+  workflowRequestId: string;
 };
 
-export const cardIds = Object.keys(actionCards);
+const posterByVideoId: Partial<Record<string, string>> = {
+  video_lateral_raise_demo: lateralRaiseCover,
+  video_front_raise_demo: frontRaiseCover,
+  video_reverse_fly_demo: reverseFlyCover,
+  video_shoulder_press_demo: shoulderPressCover,
+};
+
+export const demoVideos: DemoVideo[] = demoCatalog.map((item) => ({
+  videoId: item.video.videoId,
+  title: item.video.title,
+  creatorName: item.video.creatorName,
+  actionName: item.actionName,
+  bodyRegion: item.bodyRegion,
+  durationLabel: item.video.durationLabel,
+  previewUrl: demoVideoUrl,
+  previewSecond: item.video.previewSecond,
+  posterUrl: posterByVideoId[item.video.videoId],
+  assetFileName: item.video.assetFileName,
+  workflowRequestId: `workflow_${item.video.videoId}`,
+}));
 
 export const recommendations = [
-  {
-    cardId: "video_reverse_fly_demo",
-    reason: "补充当前还没有覆盖的肩后束",
-  },
-  {
-    cardId: "video_front_raise_demo",
-    reason: "同样练肩，主要肌群与当前动作不同",
-  },
-  {
-    cardId: "video_shoulder_press_demo",
-    reason: "这是你收藏但还没有练过的动作",
-  },
+  { cardId: "video_face_pull_demo", reason: "补充肩后束和肩胛控制" },
+  { cardId: "video_lat_pulldown_demo", reason: "加入一个背部纵向拉动作" },
+  { cardId: "video_seated_row_demo", reason: "用水平拉覆盖背部中段" },
 ];
 
-export const experienceGroups: ExperienceGroup[] = [
-  {
-    id: "lighter-weight",
-    title: "先把重量降下来",
-    summary: "不少练友发现，重量过大时手臂和斜方肌更容易抢着发力。先减轻重量，更容易保持肩膀放松。",
-    mentions: 21,
-    sourceVideos: 4,
-    disagreement: "有人认为重量不是唯一原因，动作路径同样重要。",
-    comments: [
-      {
-        id: "comment_001",
-        content: "我从 7.5kg 降到 5kg 后，第一次能控制住下放，肩中束感觉明显多了。",
-        videoTitle: "侧平举新手教学",
-        creatorName: "GoFit Demo Coach",
-      },
-      {
-        id: "comment_002",
-        content: "别急着追重量，先找得到肩的感觉再加。",
-        videoTitle: "侧平举别再耸肩了",
-        creatorName: "阿元练肩",
-      },
-    ],
-  },
-  {
-    id: "lead-with-elbows",
-    title: "想象由手肘带动",
-    summary: "把注意力从手里的哑铃移到手肘，向两侧展开，而不是用手把重量甩起来。",
-    mentions: 18,
-    sourceVideos: 3,
-    disagreement: "暂无明显分歧。",
-    comments: [
-      {
-        id: "comment_003",
-        content: "肘带动这个提示对我特别有用，手臂终于没那么抢了。",
-        videoTitle: "3 个侧平举细节",
-        creatorName: "训练中的小林",
-      },
-      {
-        id: "comment_004",
-        content: "想象肘部往墙两边走，比想象抬哑铃更好理解。",
-        videoTitle: "肩中束动作讲解",
-        creatorName: "教练可乐",
-      },
-    ],
-  },
-  {
-    id: "relax-shoulders",
-    title: "别为了抬高而耸肩",
-    summary: "抬到接近肩高就够了。继续追求高度时，斜方肌可能更容易参与。",
-    mentions: 16,
-    sourceVideos: 4,
-    disagreement: "不同人的舒适活动范围不同，不必强求完全相同的高度。",
-    comments: [
-      {
-        id: "comment_005",
-        content: "以前总想着越高越好，控制高度后肩部反而更有感觉。",
-        videoTitle: "侧平举新手教学",
-        creatorName: "GoFit Demo Coach",
-      },
-      {
-        id: "comment_006",
-        content: "肩膀先沉下来再开始，这句话救了我的斜方肌。",
-        videoTitle: "侧平举别再耸肩了",
-        creatorName: "阿元练肩",
-      },
-    ],
-  },
-];
+function commentsFor(item: DemoCatalogItem): DemoComment[] {
+  if (item.exerciseId === "action_lateral_raise") {
+    return [...item.comments, ...relatedPeerComments.filter((comment) => comment.videoId.startsWith("video_lateral_raise"))];
+  }
+  if (item.exerciseId === "action_lat_pulldown") {
+    return [...item.comments, ...relatedPeerComments.filter((comment) => comment.videoId.startsWith("video_lat_pulldown"))];
+  }
+  return item.comments;
+}
 
-export const demoVideoUrl = new URL("../../../飞书20260721-193601.mp4", import.meta.url).href;
+export type DemoExperience = {
+  exerciseId: string;
+  exerciseName: string;
+  problemTitle: string;
+  commentCount: number;
+  sourceVideoCount: number;
+  groups: ExperienceGroup[];
+};
+
+export const experienceByExerciseId: Record<string, DemoExperience> = Object.fromEntries(
+  demoCatalog.map((item) => {
+    const comments = commentsFor(item);
+    const sourceVideoCount = new Set(comments.map((comment) => comment.videoId)).size;
+    const group: ExperienceGroup = {
+      id: `experience_${item.exerciseId}_arms_felt_more`,
+      title: item.experience.methodName,
+      summary: item.experience.summary,
+      mentions: item.experience.projectedMentions,
+      sourceVideos: sourceVideoCount,
+      disagreement: item.experience.disagreement,
+      comments: comments.map((comment) => ({
+        id: comment.id,
+        content: comment.content,
+        videoTitle: comment.videoTitle,
+        creatorName: comment.authorName,
+      })),
+    };
+    return [item.exerciseId, {
+      exerciseId: item.exerciseId,
+      exerciseName: item.actionName,
+      problemTitle: item.experience.problemTitle,
+      commentCount: item.experience.projectedMentions,
+      sourceVideoCount,
+      groups: [group],
+    }];
+  }),
+);
+
+export function getDemoExperience(exerciseId: string): DemoExperience {
+  return experienceByExerciseId[exerciseId] ?? experienceByExerciseId.action_lateral_raise;
+}
+
+// 保留旧导出，供尚未迁移的调用方获得默认侧平举经验。
+export const experienceGroups = getDemoExperience("action_lateral_raise").groups;

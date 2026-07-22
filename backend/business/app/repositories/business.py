@@ -94,6 +94,14 @@ async def list_action_cards(
         FROM video_action_cards c
         JOIN source_videos v ON v.id = c.video_id
         LEFT JOIN user_saved_cards s ON s.card_id = c.id AND s.user_id = ?
+        WHERE NOT (
+            c.id IN ('lateral-raise', 'front-raise', 'reverse-fly', 'lat-pulldown')
+            AND EXISTS (
+                SELECT 1 FROM video_action_cards replacement
+                WHERE replacement.video_id = c.video_id
+                  AND replacement.id LIKE 'video_%_demo'
+            )
+        )
         ORDER BY c.created_at ASC
         """,
         (user_id,),
@@ -480,6 +488,22 @@ async def update_session_item(
     return await get_session(db, session_id)
 
 
+async def end_session(db: aiosqlite.Connection, session_id: str) -> dict[str, Any] | None:
+    session = await get_session(db, session_id)
+    if session is None:
+        return None
+    await db.execute(
+        """
+        UPDATE training_sessions
+        SET status = 'ENDED', completed_at = COALESCE(completed_at, datetime('now'))
+        WHERE id = ? AND user_id = ?
+        """,
+        (session_id, DEMO_USER_ID),
+    )
+    await db.commit()
+    return await get_session(db, session_id)
+
+
 async def refresh_session_progress(db: aiosqlite.Connection, session_id: str) -> None:
     pending = await fetch_one(
         db,
@@ -518,6 +542,7 @@ async def list_experience_groups(
         """
         SELECT * FROM peer_experience_clusters
         WHERE exercise_id = ? AND problem_tag = ?
+          AND id NOT IN ('cluster_arms_felt_more_2', 'cluster_arms_felt_more_3')
         ORDER BY mention_count DESC
         """,
         (exercise_id, problem_tag),

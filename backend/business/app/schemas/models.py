@@ -59,6 +59,7 @@ class ImportVideoRequest(ApiModel):
     title: str | None = None
     creator_name: str | None = None
     source_url: str | None = None
+    asset_file_name: str | None = None
 
 
 class ImportVideoResult(ApiModel):
@@ -67,6 +68,7 @@ class ImportVideoResult(ApiModel):
     status: str
     card_id: str | None = None
     message: str
+    media_url: str | None = None
 
 
 class ProcessingStatus(ApiModel):

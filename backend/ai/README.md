@@ -57,7 +57,7 @@ tests/            契约、Skill、API 和命令行测试
 ```powershell
 cd backend/ai
 python -m venv .venv
-.venv\Scripts\python -m pip install -e ".[dev]"
+.venv\Scripts\python -m pip install -r requirements.txt
 .venv\Scripts\python -m uvicorn app.main:app --reload --port 8001
 ```
 
@@ -132,10 +132,11 @@ result = skill.execute(request)
 Copy-Item .env.example .env
 ```
 
-P0 主链全部使用阿里云百炼 DashScope。只需要填写：
+P0 主链全部使用阿里云百炼 DashScope。`.env` 里可以把阿里云配置集中放在一起，日常只需要填写：
 
 ```dotenv
 DASHSCOPE_API_KEY=你的百炼 API Key
+DASHSCOPE_BASE_URL=https://dashscope.aliyuncs.com
 GOFIT_ASR_MODEL=qwen3-asr-flash
 GOFIT_OCR_MODEL=qwen3.5-ocr
 GOFIT_VISION_MODEL=qwen3.6-plus
@@ -144,7 +145,12 @@ GOFIT_ACTION_CARD_MODEL=qwen-flash
 
 VLM、独立 OCR 和动作卡文本模型使用 DashScope OpenAI 兼容 `chat/completions`；短音频 ASR 使用同一 API Key 调用 DashScope `multimodal-generation`，本地 WAV 以 Base64 Data URI 上传。OCR 只读取画面文字，VLM 负责动作阶段和候选片段，动作卡文本模型负责证据约束整理。
 
-默认地址分别为 `https://dashscope.aliyuncs.com/compatible-mode/v1` 和 `https://dashscope.aliyuncs.com/api/v1`。只有账号使用特定地域或 Workspace 地址时，才需要设置 `DASHSCOPE_COMPATIBLE_BASE_URL` 与 `DASHSCOPE_NATIVE_BASE_URL`。
+虽然都是阿里云模型，但 DashScope 目前有两套接口路径：OCR / VLM / 文本模型走 OpenAI 兼容接口，ASR 走原生接口。所以代码现在默认从同一个 `DASHSCOPE_BASE_URL` 自动派生：
+
+- `DASHSCOPE_COMPATIBLE_BASE_URL = {DASHSCOPE_BASE_URL}/compatible-mode/v1`
+- `DASHSCOPE_NATIVE_BASE_URL = {DASHSCOPE_BASE_URL}/api/v1`
+
+只有账号使用特定地域或 Workspace 地址，或者未来某一类模型必须单独切地址时，才需要显式设置 `DASHSCOPE_COMPATIBLE_BASE_URL`、`DASHSCOPE_NATIVE_BASE_URL` 或 `GOFIT_PEER_API_BASE_URL`。
 
 本机还必须安装 FFmpeg，并确保 `ffmpeg` 和 `ffprobe` 可以在命令行运行；也可以在 `.env` 中填写它们的完整路径。
 
@@ -215,12 +221,13 @@ MVP 不抓取平台评论。固定输入位于 `fixtures/peer_experience/digest-
 
 ```dotenv
 GOFIT_PEER_PROVIDER=aliyun
-GOFIT_PEER_API_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
 GOFIT_PEER_API_KEY=你的密钥
 GOFIT_PEER_EMBEDDING_MODEL=text-embedding-v4
 GOFIT_PEER_EMBEDDING_DIMENSIONS=1024
 GOFIT_PEER_SUMMARY_MODEL=qwen-flash
 ```
+
+不写 `GOFIT_PEER_API_BASE_URL` 时，也会默认复用 `DASHSCOPE_BASE_URL` 推导出的 OpenAI 兼容地址。
 
 真实链路为：按预置风险标签过滤 → 按问题标签分桶 → Embedding → cosine/average 层次聚类 → Flash 生成组名和一句摘要 → 程序计算评论数、来源数和 ID。模型 API 失败时，主 Demo 动作降级到 `expected-digest.json`，返回的 `providerMode` 为 `fixed-json-fallback`。
 

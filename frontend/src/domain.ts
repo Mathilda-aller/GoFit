@@ -76,6 +76,7 @@ export type Plan = {
   id: string;
   name: string;
   cardIds: string[];
+  itemIdsByCardId?: Record<string, string>;
   updatedAt: string;
   useCount: number;
 };

@@ -25,11 +25,15 @@ class PeerExperienceSettings:
 @lru_cache
 def get_peer_experience_settings() -> PeerExperienceSettings:
     load_dotenv(AI_ROOT / ".env", override=False)
+    dashscope_base_url = os.getenv(
+        "DASHSCOPE_BASE_URL",
+        "https://dashscope.aliyuncs.com",
+    ).rstrip("/")
     return PeerExperienceSettings(
         provider=os.getenv("GOFIT_PEER_PROVIDER", "aliyun"),
         api_base_url=os.getenv(
             "GOFIT_PEER_API_BASE_URL",
-            "https://dashscope.aliyuncs.com/compatible-mode/v1",
+            f"{dashscope_base_url}/compatible-mode/v1",
         ).rstrip("/"),
         api_key=(
             os.getenv("GOFIT_PEER_API_KEY")

@@ -2,16 +2,25 @@
 
 from __future__ import annotations
 
+import json
+
 import aiosqlite
 
 from app.repositories import business as repo
 
 PROBLEM_TITLES = {
-    "ARMS_FELT_MORE": "手臂比肩部更有感觉",
     "NO_TARGET_FEELING": "目标肌群无感",
     "TOO_DIFFICULT": "动作有点吃力",
     "DISCOMFORT": "出现不适",
 }
+
+
+def problem_title(problem_tag: str, exercise: dict | None) -> str:
+    if problem_tag != "ARMS_FELT_MORE":
+        return PROBLEM_TITLES.get(problem_tag, "相关练友经验")
+    muscles = json.loads(exercise["primary_muscles"]) if exercise else []
+    target = muscles[0] if muscles else "目标部位"
+    return f"手臂比{target}更有感觉？"
 
 
 async def experience_for(
@@ -61,7 +70,7 @@ async def experience_for(
         "exercise_id": exercise_id,
         "exercise_name": exercise_name,
         "problem_tag": problem_tag,
-        "problem_title": PROBLEM_TITLES.get(problem_tag, "相关练友经验"),
+        "problem_title": problem_title(problem_tag, exercise),
         "comment_count": comment_count,
         "source_video_count": source_video_count,
         "source_note": f"AI 整理自 {source_video_count} 条{exercise_name}视频下的 {comment_count} 条公开评论",

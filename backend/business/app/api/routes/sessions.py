@@ -38,6 +38,17 @@ async def get_session(
     return session
 
 
+@router.post("/sessions/{session_id}/end", response_model=TrainingSession)
+async def end_session(
+    session_id: str,
+    db: aiosqlite.Connection = Depends(get_db),
+) -> dict:
+    session = await repo.end_session(db, session_id)
+    if session is None:
+        raise HTTPException(status_code=404, detail="Training session not found.")
+    return session
+
+
 @router.patch("/sessions/{session_id}/items/{item_id}", response_model=TrainingSession)
 async def update_session_item(
     session_id: str,
