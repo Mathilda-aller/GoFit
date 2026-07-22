@@ -18,4 +18,24 @@
 随着代码增加，HTTP 层、业务规则和数据持久化要保持分层。不要把 AI Prompt 或模型
 相关逻辑写进业务中心。
 
-当前只有健康检查接口，后续按照功能模块逐步增加，不改变现有目录结构。
+当前已经实现 P0 Demo 所需的基础业务接口：
+
+- 来源视频导入和处理状态查询
+- 视频动作卡列表、详情和收藏状态
+- 练单创建、重命名、排序、添加动作和删除动作
+- 从练单复制创建本次训练
+- 训练进度、五类体感反馈和不适分流标记
+- 练单推荐候选，AI 不在线时有本地降级
+- 练友经验摘要、原评论依据和来源视频
+- Demo 用户的“我的”摘要
+
+## 启动
+
+```powershell
+cd backend/business
+python -m venv .venv
+.venv\Scripts\python -m pip install -e .
+.venv\Scripts\python -m uvicorn app.main:app --reload
+```
+
+接口地址统一使用 `/api/v1` 前缀，完整清单见 `../../docs/technical/api.md`。
