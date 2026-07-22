@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "1.0.0",
+  "assetDirectory": "../../demo-videos",
+  "requests": [
+    {
+      "requestId": "workflow_video_lateral_raise_demo",
+      "sourceVideo": { "videoId": "video_lateral_raise_demo", "title": "侧平举总是手臂酸？新手先记住这 3 点", "creatorName": "阿哲的训练课", "sourceUrl": "https://example.test/videos/lateral-raise" },
+      "videoPath": "../../demo-videos/01-lateral-raise.mp4",
+      "standardActionCandidates": [{ "standardActionId": "action_lateral_raise", "name": "哑铃侧平举", "aliases": ["侧平举", "站姿哑铃侧平举"], "bodyRegion": "肩部", "primaryMuscles": ["三角肌中束"], "secondaryMuscles": ["三角肌前束", "斜方肌"], "equipment": ["哑铃"] }]
+    },
+    {
+      "requestId": "workflow_video_shoulder_press_demo",
+      "sourceVideo": { "videoId": "video_shoulder_press_demo", "title": "坐姿推肩：新手先把躯干稳定住", "creatorName": "GoFit Demo Coach", "sourceUrl": "https://example.test/videos/shoulder-press" },
+      "videoPath": "../../demo-videos/02-shoulder-press.mp4",
+      "standardActionCandidates": [{ "standardActionId": "action_shoulder_press", "name": "坐姿哑铃推肩", "aliases": ["哑铃推肩", "坐姿推举"], "bodyRegion": "肩部", "primaryMuscles": ["三角肌前束", "三角肌中束"], "secondaryMuscles": ["肱三头肌"], "equipment": ["哑铃", "训练凳"] }]
+    },
+    {
+      "requestId": "workflow_video_reverse_fly_demo",
+      "sourceVideo": { "videoId": "video_reverse_fly_demo", "title": "反向飞鸟：别让斜方肌抢活", "creatorName": "小贺的训练笔记", "sourceUrl": "https://example.test/videos/reverse-fly" },
+      "videoPath": "../../demo-videos/03-reverse-fly.mp4",
+      "standardActionCandidates": [{ "standardActionId": "action_reverse_fly", "name": "俯身反向飞鸟", "aliases": ["反向飞鸟", "俯身飞鸟"], "bodyRegion": "肩部", "primaryMuscles": ["三角肌后束"], "secondaryMuscles": ["菱形肌", "斜方肌中部"], "equipment": ["哑铃"] }]
+    },
+    {
+      "requestId": "workflow_video_front_raise_demo",
+      "sourceVideo": { "videoId": "video_front_raise_demo", "title": "前平举：身体别跟着重量后仰", "creatorName": "阿元练肩", "sourceUrl": "https://example.test/videos/front-raise" },
+      "videoPath": "../../demo-videos/04-front-raise.mp4",
+      "standardActionCandidates": [{ "standardActionId": "action_front_raise", "name": "哑铃前平举", "aliases": ["前平举", "站姿前举"], "bodyRegion": "肩部", "primaryMuscles": ["三角肌前束"], "secondaryMuscles": ["胸大肌上部"], "equipment": ["哑铃"] }]
+    },
+    {
+      "requestId": "workflow_video_face_pull_demo",
+      "sourceVideo": { "videoId": "video_face_pull_demo", "title": "绳索面拉：拉向眉眼，不是拉向胸口", "creatorName": "训练家101", "sourceUrl": "https://example.test/videos/face-pull" },
+      "videoPath": "../../demo-videos/05-face-pull.mp4",
+      "standardActionCandidates": [{ "standardActionId": "action_face_pull", "name": "绳索面拉", "aliases": ["面拉", "绳索面部拉"], "bodyRegion": "肩部", "primaryMuscles": ["三角肌后束"], "secondaryMuscles": ["冈下肌", "斜方肌中部"], "equipment": ["龙门架", "绳索把手"] }]
+    },
+    {
+      "requestId": "workflow_video_lat_pulldown_demo",
+      "sourceVideo": { "videoId": "video_lat_pulldown_demo", "title": "高位下拉：新手找到背部发力的 3 个提示", "creatorName": "背部训练笔记", "sourceUrl": "https://example.test/videos/lat-pulldown" },
+      "videoPath": "../../demo-videos/06-lat-pulldown.mp4",
+      "standardActionCandidates": [{ "standardActionId": "action_lat_pulldown", "name": "高位下拉", "aliases": ["下拉", "宽握高位下拉"], "bodyRegion": "背部", "primaryMuscles": ["背阔肌"], "secondaryMuscles": ["大圆肌", "肱二头肌"], "equipment": ["高位下拉器"] }]
+    },
+    {
+      "requestId": "workflow_video_seated_row_demo",
+      "sourceVideo": { "videoId": "video_seated_row_demo", "title": "坐姿划船：别把身体变成钟摆", "creatorName": "背练研究所", "sourceUrl": "https://example.test/videos/seated-row" },
+      "videoPath": "../../demo-videos/07-seated-cable-row.mp4",
+      "standardActionCandidates": [{ "standardActionId": "action_seated_cable_row", "name": "坐姿绳索划船", "aliases": ["坐姿划船", "绳索划船"], "bodyRegion": "背部", "primaryMuscles": ["背阔肌", "菱形肌"], "secondaryMuscles": ["斜方肌中部", "肱二头肌"], "equipment": ["坐姿划船器"] }]
+    },
+    {
+      "requestId": "workflow_video_one_arm_row_demo",
+      "sourceVideo": { "videoId": "video_one_arm_row_demo", "title": "单臂哑铃划船：髋和肩别跟着翻", "creatorName": "力量新手村", "sourceUrl": "https://example.test/videos/one-arm-row" },
+      "videoPath": "../../demo-videos/08-one-arm-dumbbell-row.mp4",
+      "standardActionCandidates": [{ "standardActionId": "action_one_arm_dumbbell_row", "name": "单臂哑铃划船", "aliases": ["单臂划船", "哑铃划船"], "bodyRegion": "背部", "primaryMuscles": ["背阔肌"], "secondaryMuscles": ["菱形肌", "肱二头肌"], "equipment": ["哑铃", "训练凳"] }]
+    },
+    {
+      "requestId": "workflow_video_chest_supported_row_demo",
+      "sourceVideo": { "videoId": "video_chest_supported_row_demo", "title": "胸托划船：不借腰也能练到上背", "creatorName": "稳稳练背", "sourceUrl": "https://example.test/videos/chest-supported-row" },
+      "videoPath": "../../demo-videos/09-chest-supported-row.mp4",
+      "standardActionCandidates": [{ "standardActionId": "action_chest_supported_row", "name": "上斜凳俯卧划船", "aliases": ["胸托划船", "俯卧哑铃划船"], "bodyRegion": "背部", "primaryMuscles": ["菱形肌", "斜方肌中部"], "secondaryMuscles": ["背阔肌", "三角肌后束"], "equipment": ["哑铃", "上斜训练凳"] }]
+    },
+    {
+      "requestId": "workflow_video_straight_arm_pulldown_demo",
+      "sourceVideo": { "videoId": "video_straight_arm_pulldown_demo", "title": "直臂下压：保持手肘角度，别做成肱三头下压", "creatorName": "背阔肌说明书", "sourceUrl": "https://example.test/videos/straight-arm-pulldown" },
+      "videoPath": "../../demo-videos/10-straight-arm-pulldown.mp4",
+      "standardActionCandidates": [{ "standardActionId": "action_straight_arm_pulldown", "name": "直臂下压", "aliases": ["直臂下拉", "绳索直臂下压"], "bodyRegion": "背部", "primaryMuscles": ["背阔肌"], "secondaryMuscles": ["大圆肌", "肱三头肌长头"], "equipment": ["龙门架", "直杆"] }]
+    }
+  ]
+}

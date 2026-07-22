@@ -1,10 +1,12 @@
 __pycache__/
 *.py[cod]
+*.egg-info/
 .venv/
 .env
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+backend/ai/tmp/
 *.db
 *.sqlite3
 
@@ -13,3 +15,4 @@ storage/*
 
 frontend/node_modules/
 frontend/dist/
+frontend/*.tsbuildinfo

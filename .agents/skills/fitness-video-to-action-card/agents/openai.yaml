@@ -1,0 +1,4 @@
+interface:
+  display_name: "Fitness Video to Action Card"
+  short_description: "将视频证据整理为可翻面的完整学习与训练速记动作卡"
+  default_prompt: "Use $fitness-video-to-action-card to turn aligned video evidence into a source-grounded action card JSON."

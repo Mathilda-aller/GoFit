@@ -1,0 +1,101 @@
+{
+  "requestId": "demo_action_card_001",
+  "sourceVideo": {
+    "videoId": "video_lateral_raise_demo",
+    "title": "侧平举新手教学",
+    "creatorName": "GoFit Demo Coach",
+    "sourceUrl": "https://example.test/videos/lateral-raise"
+  },
+  "standardActionCandidates": [
+    {
+      "standardActionId": "action_lateral_raise",
+      "name": "哑铃侧平举",
+      "aliases": ["侧平举", "站姿哑铃侧平举"],
+      "bodyRegion": "肩部",
+      "primaryMuscles": ["三角肌中束"],
+      "secondaryMuscles": ["三角肌前束"],
+      "equipment": ["哑铃"]
+    }
+  ],
+  "evidence": [
+    {
+      "evidenceId": "asr_setup",
+      "kind": "ASR",
+      "startMs": 3000,
+      "endMs": 7000,
+      "text": "双脚自然站立，双手各握一只哑铃，手臂放在身体两侧。",
+      "confidence": 0.97
+    },
+    {
+      "evidenceId": "vision_setup",
+      "kind": "VISION",
+      "startMs": 3000,
+      "endMs": 7000,
+      "text": "人物站立，双手持哑铃，手臂自然下垂。",
+      "confidence": 0.95
+    },
+    {
+      "evidenceId": "asr_raise",
+      "kind": "ASR",
+      "startMs": 8000,
+      "endMs": 15000,
+      "text": "肘部微屈，用肘部带动手臂向两侧抬起，抬到接近肩膀高度。",
+      "confidence": 0.98
+    },
+    {
+      "evidenceId": "vision_raise",
+      "kind": "VISION",
+      "startMs": 8000,
+      "endMs": 15000,
+      "text": "双臂从身体两侧向外抬起，在肩部高度附近停止。",
+      "confidence": 0.96
+    },
+    {
+      "evidenceId": "asr_lower",
+      "kind": "ASR",
+      "startMs": 16000,
+      "endMs": 21000,
+      "text": "控制速度，缓慢把哑铃放回身体两侧。",
+      "confidence": 0.98
+    },
+    {
+      "evidenceId": "asr_error",
+      "kind": "ASR",
+      "startMs": 22000,
+      "endMs": 27000,
+      "text": "不要为了抬得更高而耸肩，肩膀保持下沉。",
+      "confidence": 0.96
+    },
+    {
+      "evidenceId": "vision_error",
+      "kind": "VISION",
+      "startMs": 22000,
+      "endMs": 27000,
+      "text": "画面对比展示了耸肩的错误动作和肩膀下沉的正确动作。",
+      "confidence": 0.94
+    }
+  ],
+  "mediaCandidates": [
+    {
+      "candidateId": "poster_raise",
+      "kind": "POSTER",
+      "startMs": 10000,
+      "endMs": 11000,
+      "evidenceIds": ["vision_raise"]
+    },
+    {
+      "candidateId": "correct_raise",
+      "kind": "CORRECT_DEMO",
+      "startMs": 8000,
+      "endMs": 21000,
+      "evidenceIds": ["asr_raise", "vision_raise", "asr_lower"]
+    },
+    {
+      "candidateId": "error_shrug",
+      "kind": "ERROR_DEMO",
+      "startMs": 22000,
+      "endMs": 27000,
+      "evidenceIds": ["asr_error", "vision_error"]
+    }
+  ]
+}

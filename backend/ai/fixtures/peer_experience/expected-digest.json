@@ -1,0 +1,31 @@
+{
+  "requestId": "peer_digest_demo_001",
+  "standardActionId": "exercise_lateral_raise",
+  "status": "SUFFICIENT",
+  "clusters": [
+    {
+      "clusterId": "cluster_arms_felt_more_1",
+      "problemTag": "ARMS_FELT_MORE",
+      "methodName": "降低重量",
+      "summary": "一些练友通过降低重量来减少其他部位抢力。",
+      "mentionCount": 3,
+      "sourceVideoCount": 3,
+      "commentIds": ["comment_001", "comment_002", "comment_003"],
+      "hasDisagreement": false,
+      "riskType": "NORMAL"
+    },
+    {
+      "clusterId": "cluster_arms_felt_more_2",
+      "problemTag": "ARMS_FELT_MORE",
+      "methodName": "由手肘带动",
+      "summary": "一些练友尝试由手肘带动动作来寻找目标部位发力。",
+      "mentionCount": 3,
+      "sourceVideoCount": 3,
+      "commentIds": ["comment_004", "comment_005", "comment_006"],
+      "hasDisagreement": false,
+      "riskType": "NORMAL"
+    }
+  ],
+  "excludedCommentIds": ["comment_007"],
+  "providerMode": "fixed-mock"
+}

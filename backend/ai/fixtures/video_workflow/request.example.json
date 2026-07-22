@@ -1,0 +1,10 @@
+{
+  "requestId": "video_job_001",
+  "sourceVideo": {
+    "videoId": "video_demo_001",
+    "title": "哑铃侧平举教学 Demo",
+    "creatorName": "GoFit Demo Coach",
+    "sourceUrl": "https://example.test/videos/demo"
+  },
+  "videoPath": "../../飞书20260721-193601.mp4"
+}

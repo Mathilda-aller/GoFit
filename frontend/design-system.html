@@ -1,0 +1,878 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="练过 GoFit 视觉设计系统 v1.0" />
+    <title>练过 · 设计系统 v1.0</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700;800&amp;display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: "Noto Sans SC", sans-serif;
+        font-synthesis: none;
+        text-rendering: optimizeLegibility;
+
+        /* Color: tinted neutrals + restrained botanical green */
+        --canvas: oklch(0.976 0.012 118);
+        --canvas-deep: oklch(0.946 0.024 122);
+        --surface: oklch(0.992 0.006 118);
+        --surface-muted: oklch(0.956 0.025 120);
+        --surface-pressed: oklch(0.925 0.04 124);
+        --ink: oklch(0.235 0.032 136);
+        --ink-secondary: oklch(0.455 0.028 132);
+        --ink-tertiary: oklch(0.61 0.022 128);
+        --line: oklch(0.875 0.025 122);
+        --line-strong: oklch(0.79 0.035 124);
+
+        --brand-50: oklch(0.96 0.055 132);
+        --brand-100: oklch(0.91 0.09 135);
+        --brand-300: oklch(0.78 0.14 138);
+        --brand-500: oklch(0.63 0.16 142);
+        --brand-700: oklch(0.445 0.12 145);
+        --brand-900: oklch(0.285 0.058 143);
+
+        --warm: oklch(0.73 0.135 66);
+        --warm-soft: oklch(0.952 0.05 72);
+        --info: oklch(0.56 0.12 244);
+        --info-soft: oklch(0.95 0.04 242);
+        --danger: oklch(0.56 0.16 28);
+        --danger-soft: oklch(0.955 0.045 28);
+
+        /* Type */
+        --text-11: 0.6875rem;
+        --text-12: 0.75rem;
+        --text-14: 0.875rem;
+        --text-16: 1rem;
+        --text-18: 1.125rem;
+        --text-22: 1.375rem;
+        --text-28: 1.75rem;
+        --text-36: 2.25rem;
+
+        /* Spacing: 4px base */
+        --space-1: 0.25rem;
+        --space-2: 0.5rem;
+        --space-3: 0.75rem;
+        --space-4: 1rem;
+        --space-5: 1.25rem;
+        --space-6: 1.5rem;
+        --space-8: 2rem;
+        --space-10: 2.5rem;
+        --space-12: 3rem;
+        --space-16: 4rem;
+
+        /* Shape */
+        --radius-sm: 0.5rem;
+        --radius-md: 0.75rem;
+        --radius-lg: 1rem;
+        --radius-xl: 1.5rem;
+        --radius-2xl: 1.75rem;
+        --radius-full: 999px;
+
+        /* Elevation + motion */
+        --shadow-1: 0 4px 16px oklch(0.28 0.04 135 / 0.07);
+        --shadow-2: 0 18px 50px oklch(0.28 0.04 135 / 0.12);
+        --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+        --duration-fast: 140ms;
+        --duration-base: 180ms;
+      }
+
+      * { box-sizing: border-box; }
+
+      html { scroll-behavior: smooth; }
+
+      body {
+        min-width: 320px;
+        margin: 0;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 6% 0%, oklch(0.9 0.075 135 / 0.55), transparent 28rem),
+          linear-gradient(180deg, var(--canvas) 0%, oklch(0.965 0.018 110) 100%);
+      }
+
+      button,
+      input { font: inherit; }
+
+      button,
+      a { -webkit-tap-highlight-color: transparent; }
+
+      button:focus-visible,
+      a:focus-visible,
+      input:focus-visible {
+        outline: 3px solid oklch(0.72 0.13 140 / 0.42);
+        outline-offset: 3px;
+      }
+
+      a { color: inherit; text-decoration: none; }
+
+      svg {
+        display: block;
+        fill: none;
+        stroke: currentColor;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-width: 1.9;
+      }
+
+      .shell {
+        display: grid;
+        grid-template-columns: 240px minmax(0, 1fr);
+        width: min(100%, 1480px);
+        margin: 0 auto;
+      }
+
+      .sidebar {
+        position: sticky;
+        top: 0;
+        align-self: start;
+        min-height: 100vh;
+        padding: var(--space-8) var(--space-6);
+        border-right: 1px solid var(--line);
+        background: oklch(0.982 0.01 118 / 0.86);
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        font-size: var(--text-18);
+        font-weight: 800;
+        letter-spacing: -0.03em;
+      }
+
+      .brand-mark {
+        display: grid;
+        width: 38px;
+        height: 38px;
+        place-items: center;
+        border-radius: var(--radius-md) var(--radius-md) var(--radius-md) 5px;
+        color: var(--surface);
+        background: linear-gradient(145deg, var(--brand-500), var(--brand-700));
+        box-shadow: 0 8px 20px oklch(0.445 0.12 145 / 0.22);
+      }
+
+      .version {
+        display: inline-flex;
+        margin-top: var(--space-3);
+        padding: 5px 9px;
+        border-radius: var(--radius-full);
+        color: var(--brand-700);
+        background: var(--brand-50);
+        font-size: var(--text-11);
+        font-weight: 700;
+      }
+
+      .nav {
+        display: grid;
+        gap: var(--space-1);
+        margin-top: var(--space-10);
+      }
+
+      .nav a {
+        display: flex;
+        min-height: 42px;
+        align-items: center;
+        gap: var(--space-3);
+        padding: 0 var(--space-3);
+        border-radius: var(--radius-md);
+        color: var(--ink-secondary);
+        font-size: var(--text-14);
+        font-weight: 600;
+        transition: background var(--duration-base) var(--ease-out), color var(--duration-base) var(--ease-out);
+      }
+
+      .nav a:hover { color: var(--brand-700); background: var(--brand-50); }
+
+      .nav svg { width: 18px; height: 18px; }
+
+      .sidebar-note {
+        margin-top: var(--space-10);
+        padding-top: var(--space-5);
+        border-top: 1px solid var(--line);
+        color: var(--ink-tertiary);
+        font-size: var(--text-12);
+        line-height: 1.7;
+      }
+
+      main { min-width: 0; padding: var(--space-10) clamp(24px, 5vw, 72px) var(--space-16); }
+
+      .intro {
+        position: relative;
+        overflow: hidden;
+        min-height: 330px;
+        padding: clamp(28px, 6vw, 68px);
+        border-radius: var(--radius-2xl);
+        color: oklch(0.965 0.014 125);
+        background:
+          radial-gradient(circle at 88% 18%, oklch(0.76 0.15 137 / 0.3), transparent 18rem),
+          linear-gradient(135deg, var(--brand-900), oklch(0.37 0.085 139));
+        box-shadow: var(--shadow-2);
+      }
+
+      .intro::after {
+        position: absolute;
+        right: -90px;
+        bottom: -125px;
+        width: 300px;
+        height: 300px;
+        border: 55px solid oklch(0.73 0.15 139 / 0.17);
+        border-radius: 50%;
+        content: "";
+      }
+
+      .kicker {
+        margin: 0 0 var(--space-3);
+        color: var(--brand-300);
+        font-size: var(--text-12);
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      h1, h2, h3, p { overflow-wrap: anywhere; }
+
+      h1 {
+        max-width: 12ch;
+        margin: 0;
+        font-size: clamp(2.3rem, 6vw, 4.6rem);
+        line-height: 1.03;
+        letter-spacing: -0.055em;
+      }
+
+      .intro-copy {
+        position: relative;
+        z-index: 1;
+        max-width: 58ch;
+        margin: var(--space-5) 0 0;
+        color: oklch(0.83 0.028 130);
+        font-size: var(--text-16);
+        line-height: 1.8;
+      }
+
+      .principles {
+        display: flex;
+        position: relative;
+        z-index: 1;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+        margin-top: var(--space-8);
+      }
+
+      .principles span {
+        padding: 7px 12px;
+        border: 1px solid oklch(0.78 0.08 137 / 0.26);
+        border-radius: var(--radius-full);
+        color: oklch(0.9 0.03 132);
+        background: oklch(0.31 0.05 140 / 0.58);
+        font-size: var(--text-12);
+        font-weight: 600;
+      }
+
+      .section { padding-top: var(--space-16); scroll-margin-top: var(--space-6); }
+
+      .section-head {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(260px, 36ch);
+        gap: var(--space-8);
+        align-items: end;
+        margin-bottom: var(--space-8);
+      }
+
+      .section-index {
+        display: block;
+        margin-bottom: var(--space-2);
+        color: var(--brand-700);
+        font-size: var(--text-12);
+        font-weight: 800;
+        letter-spacing: 0.12em;
+      }
+
+      h2 {
+        margin: 0;
+        font-size: var(--text-28);
+        line-height: 1.2;
+        letter-spacing: -0.035em;
+      }
+
+      h3 { margin: 0; font-size: var(--text-16); line-height: 1.4; }
+
+      .section-description {
+        margin: 0;
+        color: var(--ink-secondary);
+        font-size: var(--text-14);
+        line-height: 1.75;
+      }
+
+      .panel {
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-xl);
+        background: var(--surface);
+        box-shadow: var(--shadow-1);
+      }
+
+      .panel-header {
+        display: flex;
+        min-height: 58px;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-4);
+        padding: 0 var(--space-5);
+        border-bottom: 1px solid var(--line);
+      }
+
+      .panel-header span { color: var(--ink-tertiary); font-size: var(--text-12); }
+
+      .panel-body { padding: var(--space-6); }
+
+      .palette {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(120px, 1fr));
+      }
+
+      .swatch { min-height: 170px; padding: var(--space-4); }
+      .swatch:first-child { color: var(--surface); }
+      .swatch strong, .swatch code { display: block; }
+      .swatch strong { margin-top: 82px; font-size: var(--text-14); }
+      .swatch code { margin-top: var(--space-1); font-size: var(--text-11); opacity: 0.74; }
+
+      .swatch--900 { background: var(--brand-900); }
+      .swatch--700 { color: var(--surface); background: var(--brand-700); }
+      .swatch--500 { background: var(--brand-500); }
+      .swatch--100 { background: var(--brand-100); }
+      .swatch--50 { background: var(--brand-50); }
+
+      .semantic-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: var(--space-3);
+        margin-top: var(--space-5);
+      }
+
+      .semantic {
+        min-height: 92px;
+        padding: var(--space-4);
+        border: 1px solid var(--semantic-line);
+        border-radius: var(--radius-lg);
+        background:
+          linear-gradient(135deg, oklch(0.995 0.004 118 / 0.28), transparent 44%),
+          radial-gradient(circle at 92% 10%, var(--semantic-glow), transparent 42%),
+          linear-gradient(145deg, var(--semantic-start), var(--semantic-end));
+        box-shadow:
+          inset 0 1px 0 oklch(0.995 0.004 118 / 0.45),
+          0 12px 30px var(--semantic-shadow);
+        font-size: var(--text-12);
+      }
+
+      .semantic strong { display: block; margin-bottom: var(--space-1); font-size: var(--text-14); }
+      .semantic--brand {
+        --semantic-start: oklch(0.965 0.052 132 / 0.92);
+        --semantic-end: oklch(0.935 0.066 136 / 0.78);
+        --semantic-glow: oklch(0.985 0.025 128 / 0.4);
+        --semantic-line: oklch(0.79 0.075 138 / 0.3);
+        --semantic-shadow: oklch(0.44 0.08 140 / 0.07);
+        color: var(--brand-700);
+      }
+      .semantic--warm {
+        --semantic-start: oklch(0.965 0.044 74 / 0.94);
+        --semantic-end: oklch(0.94 0.058 68 / 0.78);
+        --semantic-glow: oklch(0.99 0.018 78 / 0.4);
+        --semantic-line: oklch(0.8 0.075 68 / 0.28);
+        --semantic-shadow: oklch(0.49 0.09 64 / 0.065);
+        color: oklch(0.47 0.12 62);
+      }
+      .semantic--info {
+        --semantic-start: oklch(0.965 0.034 242 / 0.94);
+        --semantic-end: oklch(0.94 0.05 238 / 0.78);
+        --semantic-glow: oklch(0.99 0.016 236 / 0.4);
+        --semantic-line: oklch(0.78 0.06 241 / 0.27);
+        --semantic-shadow: oklch(0.45 0.08 244 / 0.06);
+        color: oklch(0.46 0.11 244);
+      }
+      .semantic--danger {
+        --semantic-start: oklch(0.97 0.034 28 / 0.94);
+        --semantic-end: oklch(0.94 0.052 30 / 0.78);
+        --semantic-glow: oklch(0.99 0.014 32 / 0.4);
+        --semantic-line: oklch(0.8 0.065 28 / 0.26);
+        --semantic-shadow: oklch(0.46 0.09 28 / 0.06);
+        color: var(--danger);
+      }
+
+      .type-specimen { padding: clamp(24px, 5vw, 52px); }
+
+      .type-hero {
+        margin: 0 0 var(--space-8);
+        font-size: var(--text-36);
+        font-weight: 800;
+        line-height: 1.18;
+        letter-spacing: -0.045em;
+      }
+
+      .type-row {
+        display: grid;
+        grid-template-columns: 110px minmax(0, 1fr) 110px;
+        gap: var(--space-5);
+        align-items: baseline;
+        padding: var(--space-4) 0;
+        border-top: 1px solid var(--line);
+      }
+
+      .type-row code, .type-row span { color: var(--ink-tertiary); font-size: var(--text-12); }
+      .display-28 { font-size: var(--text-28); font-weight: 800; letter-spacing: -0.035em; }
+      .title-22 { font-size: var(--text-22); font-weight: 700; letter-spacing: -0.025em; }
+      .heading-18 { font-size: var(--text-18); font-weight: 700; }
+      .body-16 { font-size: var(--text-16); line-height: 1.7; }
+      .body-14 { font-size: var(--text-14); line-height: 1.65; }
+      .label-12 { font-size: var(--text-12); font-weight: 700; letter-spacing: 0.03em; }
+
+      .scale-grid {
+        display: grid;
+        grid-template-columns: repeat(10, minmax(60px, 1fr));
+        gap: var(--space-3);
+        align-items: end;
+      }
+
+      .space-token { text-align: center; }
+      .space-bar { width: 100%; border-radius: var(--radius-sm); background: var(--brand-100); }
+      .space-token strong { display: block; margin-top: var(--space-3); font-size: var(--text-12); }
+      .space-token span { color: var(--ink-tertiary); font-size: var(--text-11); }
+
+      .component-stack { display: grid; gap: var(--space-8); }
+
+      .component-group {
+        display: grid;
+        grid-template-columns: 170px minmax(0, 1fr);
+        gap: var(--space-8);
+        padding-bottom: var(--space-8);
+        border-bottom: 1px solid var(--line);
+      }
+
+      .component-group:last-child { padding-bottom: 0; border-bottom: 0; }
+      .component-label p { margin: var(--space-2) 0 0; color: var(--ink-tertiary); font-size: var(--text-12); line-height: 1.6; }
+
+      .demo-row { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
+
+      .button {
+        display: inline-flex;
+        min-height: 48px;
+        align-items: center;
+        justify-content: center;
+        gap: var(--space-2);
+        padding: 0 var(--space-5);
+        border: 1px solid transparent;
+        border-radius: var(--radius-lg);
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform var(--duration-fast) var(--ease-out), background var(--duration-base) var(--ease-out), box-shadow var(--duration-base) var(--ease-out);
+      }
+
+      .button svg { width: 19px; height: 19px; }
+      .button:hover { transform: translateY(-1px); }
+      .button:active { transform: scale(0.975); }
+      .button:disabled { cursor: not-allowed; opacity: 0.42; transform: none; }
+      .button--primary { color: var(--surface); background: var(--brand-700); box-shadow: 0 10px 24px oklch(0.445 0.12 145 / 0.2); }
+      .button--primary:hover { background: var(--brand-900); }
+      .button--soft { color: var(--brand-700); background: var(--brand-50); }
+      .button--soft:hover { background: var(--brand-100); }
+      .button--neutral { color: var(--ink); border-color: var(--line); background: var(--surface); }
+      .button--neutral:hover { background: var(--surface-muted); }
+      .button--compact { min-height: 40px; padding-inline: var(--space-4); border-radius: var(--radius-md); font-size: var(--text-14); }
+
+      .icon-button {
+        display: inline-grid;
+        width: 44px;
+        height: 44px;
+        place-items: center;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-md);
+        color: var(--ink-secondary);
+        background: var(--surface);
+        cursor: pointer;
+        transition: color var(--duration-base) var(--ease-out), background var(--duration-base) var(--ease-out), transform var(--duration-fast) var(--ease-out);
+      }
+
+      .icon-button:hover { color: var(--brand-700); background: var(--brand-50); }
+      .icon-button:active { transform: scale(0.94); }
+      .icon-button svg { width: 20px; height: 20px; }
+
+      .chip {
+        display: inline-flex;
+        min-height: 30px;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 10px;
+        border-radius: var(--radius-full);
+        color: var(--ink-secondary);
+        background: var(--surface-muted);
+        font-size: var(--text-12);
+        font-weight: 600;
+      }
+
+      .chip svg { width: 14px; height: 14px; }
+      .chip--selected { color: var(--brand-700); background: var(--brand-100); }
+      .chip--warm { color: oklch(0.47 0.12 62); background: var(--warm-soft); }
+
+      .field { display: grid; gap: var(--space-2); width: min(100%, 360px); }
+      .field label { font-size: var(--text-12); font-weight: 700; }
+
+      .input {
+        width: 100%;
+        min-height: 48px;
+        padding: 0 var(--space-4);
+        border: 1px solid var(--line);
+        border-radius: var(--radius-lg);
+        color: var(--ink);
+        background: var(--surface);
+        transition: border var(--duration-base) var(--ease-out), box-shadow var(--duration-base) var(--ease-out);
+      }
+
+      .input:hover { border-color: var(--line-strong); }
+      .input:focus { border-color: var(--brand-500); box-shadow: 0 0 0 4px oklch(0.78 0.14 138 / 0.18); outline: none; }
+      .input::placeholder { color: var(--ink-tertiary); }
+      .field small { color: var(--ink-tertiary); font-size: var(--text-11); }
+
+      .notice {
+        display: grid;
+        grid-template-columns: 34px minmax(0, 1fr);
+        gap: var(--space-3);
+        width: min(100%, 580px);
+        padding: var(--space-4);
+        border: 1px solid oklch(0.87 0.055 72);
+        border-radius: var(--radius-lg);
+        background: var(--warm-soft);
+      }
+
+      .notice-icon {
+        display: grid;
+        width: 34px;
+        height: 34px;
+        place-items: center;
+        border-radius: var(--radius-md);
+        color: oklch(0.48 0.12 62);
+        background: oklch(0.89 0.09 72);
+      }
+
+      .notice-icon svg { width: 18px; height: 18px; }
+      .notice p { margin: var(--space-1) 0 0; color: var(--ink-secondary); font-size: var(--text-12); line-height: 1.6; }
+
+      .icon-rules {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--space-5);
+      }
+
+      .icon-rule { padding: var(--space-5); border: 1px solid var(--line); border-radius: var(--radius-lg); }
+      .icon-rule-icon { display: flex; min-height: 74px; align-items: center; gap: var(--space-5); color: var(--brand-700); }
+      .icon-rule-icon svg:nth-child(1) { width: 16px; height: 16px; }
+      .icon-rule-icon svg:nth-child(2) { width: 20px; height: 20px; }
+      .icon-rule-icon svg:nth-child(3) { width: 24px; height: 24px; }
+      .icon-rule p { margin: var(--space-2) 0 0; color: var(--ink-secondary); font-size: var(--text-12); line-height: 1.65; }
+
+      .sample-wrap {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 390px;
+        gap: clamp(28px, 6vw, 80px);
+        align-items: center;
+        padding: clamp(24px, 5vw, 56px);
+        background: linear-gradient(135deg, var(--canvas-deep), var(--canvas));
+      }
+
+      .sample-notes { max-width: 48ch; }
+      .sample-notes h3 { font-size: var(--text-22); }
+      .sample-notes p { color: var(--ink-secondary); line-height: 1.75; }
+      .sample-notes ul { margin: var(--space-5) 0 0; padding-left: 1.2em; color: var(--ink-secondary); font-size: var(--text-14); line-height: 1.9; }
+
+      .phone {
+        overflow: hidden;
+        width: min(100%, 390px);
+        min-height: 720px;
+        border: 1px solid var(--line);
+        border-radius: 34px;
+        background: var(--canvas);
+        box-shadow: var(--shadow-2);
+      }
+
+      .phone-content { padding: 22px 20px 100px; }
+      .phone-header { display: flex; align-items: center; justify-content: space-between; min-height: 44px; }
+      .phone-header .brand-mark { width: 34px; height: 34px; }
+
+      .phone-hero {
+        position: relative;
+        overflow: hidden;
+        margin-top: var(--space-5);
+        padding: var(--space-6);
+        border-radius: var(--radius-xl);
+        color: oklch(0.965 0.014 125);
+        background: linear-gradient(145deg, var(--brand-900), oklch(0.36 0.08 140));
+      }
+
+      .phone-hero::after {
+        position: absolute;
+        right: -55px;
+        bottom: -72px;
+        width: 160px;
+        height: 160px;
+        border: 34px solid oklch(0.7 0.15 139 / 0.19);
+        border-radius: 50%;
+        content: "";
+      }
+
+      .phone-hero .kicker { margin-bottom: var(--space-2); color: var(--brand-300); }
+      .phone-hero h3 { position: relative; z-index: 1; font-size: var(--text-28); letter-spacing: -0.035em; }
+      .phone-hero p { position: relative; z-index: 1; margin: var(--space-3) 0 var(--space-5); color: oklch(0.82 0.03 130); font-size: var(--text-14); line-height: 1.65; }
+      .phone-hero .button { position: relative; z-index: 1; }
+      .phone-title { display: flex; align-items: end; justify-content: space-between; margin: var(--space-8) 0 var(--space-3); }
+      .phone-title span { color: var(--ink-tertiary); font-size: var(--text-12); }
+
+      .plan-list { overflow: hidden; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+      .plan-row { display: grid; grid-template-columns: 42px minmax(0, 1fr) auto; gap: var(--space-3); align-items: center; padding: var(--space-4) 0; }
+      .plan-row + .plan-row { border-top: 1px solid var(--line); }
+      .plan-thumb { display: grid; width: 42px; height: 42px; place-items: center; border-radius: var(--radius-md); color: var(--brand-700); background: var(--brand-50); }
+      .plan-thumb svg { width: 20px; height: 20px; }
+      .plan-row p { margin: 2px 0 0; color: var(--ink-tertiary); font-size: var(--text-11); }
+
+      .bottom-nav {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        margin-top: -80px;
+        padding: 8px 16px 14px;
+        border-top: 1px solid var(--line);
+        background: oklch(0.992 0.006 118 / 0.96);
+      }
+
+      .bottom-nav span { display: grid; min-height: 58px; place-items: center; gap: 3px; border-radius: var(--radius-lg); color: var(--ink-tertiary); font-size: var(--text-11); font-weight: 600; }
+      .bottom-nav span:first-child { color: var(--brand-700); background: var(--brand-50); }
+      .bottom-nav svg { width: 20px; height: 20px; }
+
+      .rules-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-5);
+      }
+
+      .rule-list { margin: 0; padding: var(--space-6) var(--space-6) var(--space-6) 2.6rem; font-size: var(--text-14); line-height: 1.85; }
+      .rule-list li + li { margin-top: var(--space-2); }
+      .do .panel-header { color: var(--brand-700); background: var(--brand-50); }
+      .dont .panel-header { color: var(--danger); background: var(--danger-soft); }
+
+      footer { padding-top: var(--space-16); color: var(--ink-tertiary); font-size: var(--text-12); text-align: center; }
+
+      @media (max-width: 980px) {
+        .shell { grid-template-columns: minmax(0, 1fr); width: 100%; }
+        .sidebar, main { min-width: 0; width: 100%; }
+        .sidebar { position: static; min-height: auto; padding: var(--space-5); border-right: 0; border-bottom: 1px solid var(--line); }
+        .nav { display: flex; max-width: 100%; overflow-x: auto; margin-top: var(--space-5); padding-bottom: var(--space-1); }
+        .nav a { flex: 0 0 auto; }
+        .sidebar-note { display: none; }
+        .palette { grid-template-columns: repeat(5, minmax(100px, 1fr)); overflow-x: auto; }
+        .sample-wrap { grid-template-columns: 1fr; }
+        .phone { margin: 0 auto; }
+      }
+
+      @media (max-width: 700px) {
+        main { padding: var(--space-5) var(--space-4) var(--space-12); }
+        .intro { min-height: 390px; padding: var(--space-8) var(--space-6); }
+        .section { padding-top: var(--space-12); }
+        .section-head, .component-group { grid-template-columns: 1fr; gap: var(--space-4); }
+        .section-description { max-width: 65ch; }
+        .semantic-grid, .icon-rules, .rules-grid { grid-template-columns: 1fr; }
+        .scale-grid { grid-template-columns: repeat(5, 1fr); row-gap: var(--space-6); }
+        .type-row { grid-template-columns: 76px minmax(0, 1fr); }
+        .type-row span { display: none; }
+        .sample-wrap { padding: var(--space-4); }
+        .phone { min-height: 680px; border-radius: 28px; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true">
+            <svg width="21" height="21" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6" /></svg>
+          </span>
+          <span>练过</span>
+        </div>
+        <span class="version">Design System v1.0</span>
+        <nav class="nav" aria-label="设计系统目录">
+          <a href="#foundations"><svg viewBox="0 0 24 24"><path d="M12 2 2 7l10 5 10-5-10-5Z" /><path d="m2 17 10 5 10-5M2 12l10 5 10-5" /></svg>基础风格</a>
+          <a href="#type"><svg viewBox="0 0 24 24"><path d="M4 7V4h16v3M9 20h6M12 4v16" /></svg>字体层级</a>
+          <a href="#spacing"><svg viewBox="0 0 24 24"><path d="M4 6h16M7 12h10M10 18h4" /></svg>间距与形状</a>
+          <a href="#components"><svg viewBox="0 0 24 24"><rect width="7" height="7" x="3" y="3" rx="1" /><rect width="7" height="7" x="14" y="3" rx="1" /><rect width="7" height="7" x="14" y="14" rx="1" /><rect width="7" height="7" x="3" y="14" rx="1" /></svg>基础组件</a>
+          <a href="#icons"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M9 12h6M12 9v6" /></svg>图标规范</a>
+          <a href="#sample"><svg viewBox="0 0 24 24"><rect width="14" height="20" x="5" y="2" rx="3" /><path d="M9 18h6" /></svg>界面示例</a>
+          <a href="#rules"><svg viewBox="0 0 24 24"><path d="m9 11 3 3L22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" /></svg>使用原则</a>
+        </nav>
+        <p class="sidebar-note">这份规范保留当前产品的温暖、自然和轻运动感，只收敛视觉语言，不重做产品性格。</p>
+      </aside>
+
+      <main>
+        <header class="intro">
+          <p class="kicker">GoFit · 练过</p>
+          <h1>把“看过”变成真正练过。</h1>
+          <p class="intro-copy">一套为健身新手设计的移动端产品语言。信息清楚、触控轻松、反馈真实，保留一点聪明的活力，但不制造身体焦虑。</p>
+          <div class="principles"><span>柔和植物色</span><span>单一中文字体</span><span>4px 间距体系</span><span>线性圆角图标</span><span>单手可用</span></div>
+        </header>
+
+        <section class="section" id="foundations">
+          <div class="section-head">
+            <div><span class="section-index">01 · FOUNDATIONS</span><h2>基础风格</h2></div>
+            <p class="section-description">以偏暖中性色承载内容，绿色只用于品牌、主操作和当前状态。渐变主要用于大面积品牌承载面，也可在语义提示中用低对比透明层轻量呈现；正文与标签仍保持纯色。</p>
+          </div>
+          <div class="panel">
+            <div class="panel-header"><h3>品牌色阶</h3><span>OKLCH · Botanical Green</span></div>
+            <div class="palette">
+              <div class="swatch swatch--900"><strong>Forest 900</strong><code>0.285 0.058 143</code></div>
+              <div class="swatch swatch--700"><strong>Forest 700</strong><code>0.445 0.120 145</code></div>
+              <div class="swatch swatch--500"><strong>Leaf 500</strong><code>0.630 0.160 142</code></div>
+              <div class="swatch swatch--100"><strong>Sprout 100</strong><code>0.910 0.090 135</code></div>
+              <div class="swatch swatch--50"><strong>Mist 50</strong><code>0.960 0.055 132</code></div>
+            </div>
+          </div>
+          <div class="semantic-grid">
+            <div class="semantic semantic--brand"><strong>品牌 / 完成</strong>主要操作、选中、积极反馈</div>
+            <div class="semantic semantic--warm"><strong>提醒 / 进行中</strong>训练提醒、需要留意</div>
+            <div class="semantic semantic--info"><strong>信息 / 来源</strong>AI 说明、证据、系统信息</div>
+            <div class="semantic semantic--danger"><strong>危险 / 不适</strong>停止训练、错误与风险</div>
+          </div>
+        </section>
+
+        <section class="section" id="type">
+          <div class="section-head">
+            <div><span class="section-index">02 · TYPOGRAPHY</span><h2>字体层级</h2></div>
+            <p class="section-description">全局统一使用 Noto Sans SC。标题依靠字重和紧凑字距建立质感，标签、按钮和正文不混用展示字体。</p>
+          </div>
+          <div class="panel type-specimen">
+            <p class="type-hero">Noto Sans SC<br />清楚，但不冷淡。</p>
+            <div class="type-row"><code>28 / 800</code><div class="display-28">今天，想练哪里？</div><span>页面大标题</span></div>
+            <div class="type-row"><code>22 / 700</code><div class="title-22">侧平举训练速记</div><span>模块标题</span></div>
+            <div class="type-row"><code>18 / 700</code><div class="heading-18">记住这 3 点</div><span>区块标题</span></div>
+            <div class="type-row"><code>16 / 400</code><div class="body-16">手肘微屈，抬到与肩同高即可。</div><span>主要正文</span></div>
+            <div class="type-row"><code>14 / 400</code><div class="body-14">保持肩膀放松，不要用斜方肌代偿。</div><span>辅助正文</span></div>
+            <div class="type-row"><code>12 / 700</code><div class="label-12">来自本视频 · 00:12–00:18</div><span>标签与元信息</span></div>
+          </div>
+        </section>
+
+        <section class="section" id="spacing">
+          <div class="section-head">
+            <div><span class="section-index">03 · SPACING &amp; SHAPE</span><h2>间距与形状</h2></div>
+            <p class="section-description">使用 4px 基础网格。正文内部偏紧，区块之间明显拉开。圆角只使用 8、12、16、24、28 五档，避免每个组件一个数值。</p>
+          </div>
+          <div class="panel">
+            <div class="panel-header"><h3>间距刻度</h3><span>4 / 8 / 12 / 16 / 20 / 24 / 32 / 40 / 48 / 64</span></div>
+            <div class="panel-body scale-grid">
+              <div class="space-token"><div class="space-bar" style="height:4px"></div><strong>1</strong><span>4px</span></div>
+              <div class="space-token"><div class="space-bar" style="height:8px"></div><strong>2</strong><span>8px</span></div>
+              <div class="space-token"><div class="space-bar" style="height:12px"></div><strong>3</strong><span>12px</span></div>
+              <div class="space-token"><div class="space-bar" style="height:16px"></div><strong>4</strong><span>16px</span></div>
+              <div class="space-token"><div class="space-bar" style="height:20px"></div><strong>5</strong><span>20px</span></div>
+              <div class="space-token"><div class="space-bar" style="height:24px"></div><strong>6</strong><span>24px</span></div>
+              <div class="space-token"><div class="space-bar" style="height:32px"></div><strong>8</strong><span>32px</span></div>
+              <div class="space-token"><div class="space-bar" style="height:40px"></div><strong>10</strong><span>40px</span></div>
+              <div class="space-token"><div class="space-bar" style="height:48px"></div><strong>12</strong><span>48px</span></div>
+              <div class="space-token"><div class="space-bar" style="height:64px"></div><strong>16</strong><span>64px</span></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="components">
+          <div class="section-head">
+            <div><span class="section-index">04 · COMPONENTS</span><h2>基础组件</h2></div>
+            <p class="section-description">交互高度统一为 48px，紧凑操作 40px，纯图标按钮 44px。所有组件共享同一套默认、悬停、聚焦、按下和禁用状态。</p>
+          </div>
+          <div class="panel panel-body component-stack">
+            <div class="component-group">
+              <div class="component-label"><h3>按钮</h3><p>一个页面最多一个高优先级主操作。</p></div>
+              <div class="demo-row">
+                <button class="button button--primary"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" /></svg>开始训练</button>
+                <button class="button button--soft">加入练单</button>
+                <button class="button button--neutral">稍后再说</button>
+                <button class="button button--primary" disabled>不可用</button>
+                <button class="button button--soft button--compact">紧凑按钮</button>
+              </div>
+            </div>
+            <div class="component-group">
+              <div class="component-label"><h3>图标按钮</h3><p>44px 触控区域，图标固定 20px。</p></div>
+              <div class="demo-row">
+                <button class="icon-button" aria-label="返回"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6" /></svg></button>
+                <button class="icon-button" aria-label="收藏"><svg viewBox="0 0 24 24"><path d="M19 21 12 16l-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" /></svg></button>
+                <button class="icon-button" aria-label="更多"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1" /><circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /></svg></button>
+              </div>
+            </div>
+            <div class="component-group">
+              <div class="component-label"><h3>标签</h3><p>表达属性或状态，不承担主要操作。</p></div>
+              <div class="demo-row">
+                <span class="chip chip--selected"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6" /></svg>来自本视频</span>
+                <span class="chip">肩部</span><span class="chip">哑铃</span><span class="chip chip--warm">训练进行中</span>
+              </div>
+            </div>
+            <div class="component-group">
+              <div class="component-label"><h3>输入框</h3><p>标签常驻，placeholder 只提供示例。</p></div>
+              <div class="field"><label for="plan-name">练单名称</label><input class="input" id="plan-name" placeholder="例如：今天练肩" /><small>最多 20 个汉字</small></div>
+            </div>
+            <div class="component-group">
+              <div class="component-label"><h3>提醒</h3><p>用完整背景与图标表达状态，不使用侧边色条。</p></div>
+              <div class="notice"><span class="notice-icon"><svg viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01" /><path d="M10.3 3.7 2.6 17a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.7a2 2 0 0 0-3.4 0Z" /></svg></span><div><h3>出现不适时先停止</h3><p>动作提示不能替代专业诊断。如有持续疼痛，请咨询专业人士。</p></div></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="icons">
+          <div class="section-head">
+            <div><span class="section-index">05 · ICONOGRAPHY</span><h2>图标规范</h2></div>
+            <p class="section-description">统一使用 Lucide 风格线性图标：圆角端点、1.9px 描边。正文内 16px，按钮内 20px，功能入口最多 24px。</p>
+          </div>
+          <div class="icon-rules">
+            <article class="icon-rule"><div class="icon-rule-icon"><svg viewBox="0 0 24 24"><path d="M6.5 6.5h11v11h-11z" /></svg><svg viewBox="0 0 24 24"><path d="M6.5 6.5h11v11h-11z" /></svg><svg viewBox="0 0 24 24"><path d="M6.5 6.5h11v11h-11z" /></svg></div><h3>三种标准尺寸</h3><p>16 / 20 / 24px。不要为了填满空间随意放大。</p></article>
+            <article class="icon-rule"><div class="icon-rule-icon"><svg viewBox="0 0 24 24"><path d="M4 12h16M12 4v16" /></svg><svg viewBox="0 0 24 24"><path d="M4 12h16M12 4v16" /></svg><svg viewBox="0 0 24 24"><path d="M4 12h16M12 4v16" /></svg></div><h3>统一描边</h3><p>使用 1.9px，保持 round cap 与 round join。</p></article>
+            <article class="icon-rule"><div class="icon-rule-icon"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6" /></svg><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6" /></svg><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6" /></svg></div><h3>颜色跟随语义</h3><p>默认继承文字色，只在选中、成功或风险状态切换颜色。</p></article>
+          </div>
+        </section>
+
+        <section class="section" id="sample">
+          <div class="section-head">
+            <div><span class="section-index">06 · APPLICATION</span><h2>界面示例</h2></div>
+            <p class="section-description">示例将上述规则应用到当前“练单”场景，保留深绿主视觉，但降低按钮与背景的色彩冲突。</p>
+          </div>
+          <div class="panel sample-wrap">
+            <div class="sample-notes"><h3>移动端优先，清楚比装饰重要</h3><p>大面积渐变只承担品牌氛围，真正的任务区回到安静、清楚的浅色表面。列表使用分隔线组织内容，避免把每一项都包成卡片。</p><ul><li>页面水平边距固定 20px</li><li>主按钮高度 48px，图标 20px</li><li>区块之间使用 32px 节奏</li><li>正文只用 Ink / Secondary 两级</li><li>底部导航当前项使用柔和浅绿面</li></ul></div>
+            <div class="phone">
+              <div class="phone-content">
+                <div class="phone-header"><div class="brand"><span class="brand-mark"><svg width="19" height="19" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6" /></svg></span><span>练过</span></div><button class="icon-button" aria-label="更多"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1" /><circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /></svg></button></div>
+                <section class="phone-hero"><p class="kicker">把收藏真正练起来</p><h3>今天，想练哪里？</h3><p>自己挑动作，练单助手只给少量候选。</p><button class="button button--primary button--compact"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>新建练单</button></section>
+                <div class="phone-title"><h3>我的练单</h3><span>3 份</span></div>
+                <div class="plan-list">
+                  <div class="plan-row"><span class="plan-thumb"><svg viewBox="0 0 24 24"><path d="M6.5 6.5h11v11h-11z" /></svg></span><div><h3>今天练肩</h3><p>3 个动作 · 刚刚保存</p></div><svg width="18" height="18" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6" /></svg></div>
+                  <div class="plan-row"><span class="plan-thumb"><svg viewBox="0 0 24 24"><path d="M6.5 6.5h11v11h-11z" /></svg></span><div><h3>轻重量激活</h3><p>4 个动作 · 使用 2 次</p></div><svg width="18" height="18" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6" /></svg></div>
+                </div>
+              </div>
+              <nav class="bottom-nav" aria-label="示例主导航"><span><svg viewBox="0 0 24 24"><path d="m9 11 3 3L22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" /></svg>练单</span><span><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z" /></svg>动作库</span><span><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></svg>我的</span></nav>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="rules">
+          <div class="section-head">
+            <div><span class="section-index">07 · PRINCIPLES</span><h2>使用原则</h2></div>
+            <p class="section-description">设计系统的价值不在于“所有地方长一样”，而在于同类信息和同类操作始终说同一种视觉语言。</p>
+          </div>
+          <div class="rules-grid">
+            <div class="panel do"><div class="panel-header"><h3>应该</h3><span>Do</span></div><ul class="rule-list"><li>一个页面只保留一个最强主操作</li><li>用字号、字重和间距建立层级</li><li>状态色同时配合文字或图标</li><li>正文区域控制在 65–75 个字符宽</li><li>为减少动态效果偏好提供支持</li></ul></div>
+            <div class="panel dont"><div class="panel-header"><h3>避免</h3><span>Don't</span></div><ul class="rule-list"><li>同一层级混用多个绿色</li><li>用渐变文字或彩色描边做强调</li><li>每个内容块都包成独立卡片</li><li>用表情符号代替界面图标</li><li>用满饱和红色制造训练焦虑</li></ul></div>
+          </div>
+        </section>
+
+        <footer>练过 Design System v1.0 · HTML Preview · 2026</footer>
+      </main>
+    </div>
+  </body>
+</html>

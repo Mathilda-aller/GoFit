@@ -1,0 +1,10 @@
+{
+  "requestId": "peer_match_demo_001",
+  "standardActionId": "exercise_lateral_raise",
+  "feedbackType": "OTHER_FELT",
+  "feltMuscles": ["BICEPS"],
+  "availableClusters": [
+    {"clusterId": "cluster_arms_felt_more_1", "problemTag": "ARMS_FELT_MORE"},
+    {"clusterId": "cluster_arms_felt_more_2", "problemTag": "ARMS_FELT_MORE"}
+  ]
+}

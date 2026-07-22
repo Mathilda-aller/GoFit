@@ -1,0 +1,2 @@
+"""GoFit AI center."""
+
