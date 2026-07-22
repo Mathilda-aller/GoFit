@@ -7,6 +7,7 @@ services:
     environment:
       - ENV=production
       - GOFIT_STORAGE_DIR=/app/storage
+      - GOFIT_AI_CENTER_URL=http://gofit-ai:8100
     volumes:
       - ./storage:/app/storage
     restart: unless-stopped
@@ -18,6 +19,40 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
+
+  gofit-ai:
+    image: ${DOCKERHUB_USERNAME:-muxinji}/gofit-ai:latest
+    container_name: gofit-ai
+    ports:
+      - "8100:8100"
+    environment:
+      - ENV=production
+      - GOFIT_MEDIA_OUTPUT_DIR=/app/storage/ai-generated
+      - GOFIT_FFMPEG_PATH=ffmpeg
+      - GOFIT_FFPROBE_PATH=ffprobe
+      # 真实模型配置（留空则使用固定假模型）
+      - DASHSCOPE_API_KEY=${DASHSCOPE_API_KEY:-}
+      - GOFIT_ASR_MODEL=${GOFIT_ASR_MODEL:-qwen3-asr-flash}
+      - GOFIT_OCR_MODEL=${GOFIT_OCR_MODEL:-}
+      - GOFIT_VISION_MODEL=${GOFIT_VISION_MODEL:-}
+      - GOFIT_ACTION_CARD_MODEL=${GOFIT_ACTION_CARD_MODEL:-}
+      - GOFIT_ACTION_CARD_PROVIDER=${GOFIT_ACTION_CARD_PROVIDER:-dashscope}
+    volumes:
+      - ./storage:/app/storage
+    restart: unless-stopped
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  gofit-frontend:
+    image: ${DOCKERHUB_USERNAME:-muxinji}/gofit-frontend:latest
+    container_name: gofit-frontend
+    ports:
+      - "80:80"
+    environment:
+      - VITE_BUSINESS_API_URL=/api/v1
+    restart: unless-stopped
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
 
   watchtower:
     image: containrrr/watchtower:latest
