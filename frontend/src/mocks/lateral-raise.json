@@ -1,0 +1,119 @@
+{
+  "schemaVersion": "1.1.0",
+  "requestId": "demo_action_card_001",
+  "status": "READY",
+  "standardAction": {
+    "standardActionId": "action_lateral_raise",
+    "confidence": 0.99,
+    "decision": "MATCHED"
+  },
+  "actionCard": {
+    "sourceVideo": {
+      "videoId": "video_lateral_raise_demo",
+      "title": "侧平举新手教学",
+      "creatorName": "GoFit Demo Coach",
+      "sourceUrl": "https://example.test/videos/lateral-raise"
+    },
+    "actionName": "哑铃侧平举",
+    "bodyRegion": "肩部",
+    "primaryMuscles": ["三角肌中束"],
+    "secondaryMuscles": ["三角肌前束"],
+    "equipment": ["哑铃"],
+    "learningSide": {
+      "correctDemo": {
+        "kind": "CORRECT_DEMO",
+        "candidateId": "correct_raise",
+        "startMs": 8000,
+        "endMs": 21000,
+        "evidenceIds": ["asr_raise", "vision_raise", "asr_lower"]
+      },
+      "steps": [
+        {
+          "order": 1,
+          "instruction": "自然站稳，双手持哑铃，肩膀保持放松。",
+          "startMs": 3000,
+          "endMs": 7000,
+          "evidenceIds": ["asr_setup", "vision_setup", "asr_error"]
+        },
+        {
+          "order": 2,
+          "instruction": "肘部微屈，用肘部带动手臂向两侧抬起。",
+          "startMs": 8000,
+          "endMs": 15000,
+          "evidenceIds": ["asr_raise", "vision_raise"]
+        },
+        {
+          "order": 3,
+          "instruction": "双臂抬到接近肩膀高度。",
+          "startMs": 8000,
+          "endMs": 15000,
+          "evidenceIds": ["asr_raise", "vision_raise"]
+        },
+        {
+          "order": 4,
+          "instruction": "控制速度，缓慢把哑铃放回身体两侧。",
+          "startMs": 16000,
+          "endMs": 21000,
+          "evidenceIds": ["asr_lower"]
+        }
+      ],
+      "keyReminders": [
+        {
+          "text": "不要为了抬得更高而耸肩。",
+          "evidenceIds": ["asr_error", "vision_error"]
+        },
+        {
+          "text": "下放时保持控制，不要突然卸力。",
+          "evidenceIds": ["asr_lower"]
+        }
+      ],
+      "commonErrors": [
+        {
+          "mistake": "为了抬高而耸肩。",
+          "correction": "让肩膀保持下沉，不要追求超过肩膀的高度。",
+          "errorDemo": {
+            "kind": "ERROR_DEMO",
+            "candidateId": "error_shrug",
+            "startMs": 22000,
+            "endMs": 27000,
+            "evidenceIds": ["asr_error", "vision_error"]
+          },
+          "evidenceIds": ["asr_error", "vision_error"]
+        }
+      ]
+    },
+    "trainingSide": {
+      "loopDemo": {
+        "kind": "CORRECT_DEMO",
+        "candidateId": "correct_raise",
+        "startMs": 8000,
+        "endMs": 21000,
+        "evidenceIds": ["asr_raise", "vision_raise", "asr_lower"]
+      },
+      "quickCue": {
+        "text": "肩放松 → 肘带动 → 缓慢落",
+        "evidenceIds": ["asr_error", "asr_raise", "vision_raise", "asr_lower"]
+      },
+      "quickTips": [
+        {
+          "text": "不要耸肩。",
+          "evidenceIds": ["asr_error", "vision_error"]
+        },
+        {
+          "text": "抬到接近肩高。",
+          "evidenceIds": ["asr_raise", "vision_raise"]
+        },
+        {
+          "text": "控制下放。",
+          "evidenceIds": ["asr_lower"]
+        }
+      ]
+    }
+  },
+  "warnings": [],
+  "needsReviewReasons": [],
+  "provider": {
+    "name": "fixed-fixture",
+    "version": "1.1.0"
+  }
+}
