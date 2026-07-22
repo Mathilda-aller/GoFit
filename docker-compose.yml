@@ -1,11 +1,14 @@
 services:
   gofit-business:
-    image: ${TCR_REGISTRY:-ccr.ccs.tencentyun.com}/${TCR_NAMESPACE:-your-namespace}/gofit-business:latest
+    image: ${DOCKERHUB_USERNAME:-muxinji}/gofit-business:latest
     container_name: gofit-business
     ports:
       - "8000:8000"
     environment:
       - ENV=production
+      - GOFIT_STORAGE_DIR=/app/storage
+    volumes:
+      - ./storage:/app/storage
     restart: unless-stopped
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
