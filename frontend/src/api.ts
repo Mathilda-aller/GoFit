@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { businessApi, toFrontendActionCard, toFrontendExperienceGroups } from "./business-api";
+import { businessApi, toFrontendActionCard } from "./business-api";
 import { actionCards, cardIds, getDemoExperience } from "./mocks/data";
 
 const demoFallbackEnabled = import.meta.env.VITE_ENABLE_DEMO_FALLBACK === "true";
@@ -14,6 +14,22 @@ export const mockRepository = {
   async listActionCards() {
     await wait(160);
     return cardIds.map((id) => actionCards[id]);
+  },
+  async getExperience(exerciseId: string, currentVideoId?: string) {
+    await wait(120);
+    const demo = getDemoExperience(exerciseId, currentVideoId);
+    return {
+      exerciseId: demo.exerciseId,
+      exerciseName: demo.exerciseName,
+      problemTag: "ARMS_FELT_MORE",
+      problemTitle: demo.problemTitle,
+      commentCount: demo.commentCount,
+      sourceVideoCount: demo.sourceVideoCount,
+      sourceNote: `演示来源：${demo.sourceVideoCount} 条同动作视频下的 ${demo.commentCount} 条关联评论`,
+      safetyTriggered: false,
+      groups: [],
+      frontendGroups: demo.groups,
+    };
   },
 };
 
@@ -74,26 +90,7 @@ export function useRecommendations(planId: string | undefined) {
 export function useExperiences(exerciseId: string, currentVideoId?: string, fromTraining = false) {
   return useQuery({
     queryKey: ["experiences", exerciseId, currentVideoId, fromTraining],
-    queryFn: async () => {
-      try {
-        const result = await businessApi.experiences(exerciseId, "ARMS_FELT_MORE", currentVideoId, fromTraining);
-        return { ...result, frontendGroups: toFrontendExperienceGroups(result) };
-      } catch {
-        const demo = getDemoExperience(exerciseId);
-        return {
-          exerciseId: demo.exerciseId,
-          exerciseName: demo.exerciseName,
-          problemTag: "ARMS_FELT_MORE",
-          problemTitle: demo.problemTitle,
-          commentCount: demo.commentCount,
-          sourceVideoCount: demo.sourceVideoCount,
-          sourceNote: `演示来源：${demo.sourceVideoCount} 条同动作视频下的 ${demo.commentCount} 条关联评论`,
-          safetyTriggered: false,
-          groups: [],
-          frontendGroups: demo.groups,
-        };
-      }
-    },
+    queryFn: () => mockRepository.getExperience(exerciseId, currentVideoId),
     staleTime: 30_000,
     retry: 1,
   });

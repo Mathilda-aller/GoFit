@@ -7,7 +7,7 @@ import {
   getBuddyTrainingCount,
   purchaseBuddyItem,
 } from "./buddy-progress";
-import { DEFAULT_SHOP_ITEMS } from "./kit";
+import { calculateGrowth, calculateLevel, DEFAULT_SHOP_ITEMS, getMuscleStageMetrics } from "./kit";
 
 const item = (id: string) => {
   const result = DEFAULT_SHOP_ITEMS.find((candidate) => candidate.id === id);
@@ -77,5 +77,25 @@ describe("buddy progress", () => {
       ...DEFAULT_BUDDY_PROGRESS.equippedOutfit,
       hairItemId: "hair-ponytail",
     });
+  });
+});
+
+describe("seven-stage muscle growth", () => {
+  it("maps each 150 XP training to the next permanent stage", () => {
+    const xpStages = [0, 150, 300, 450, 600, 750, 900];
+
+    expect(xpStages.map((xp) => calculateLevel(xp))).toEqual([1, 2, 3, 4, 5, 6, 7]);
+    xpStages.forEach((xp, index) => {
+      expect(calculateGrowth(xp)).toBeCloseTo(index / 6);
+    });
+  });
+
+  it("strictly increases the authored muscle outline at every stage", () => {
+    const stages = Array.from({ length: 7 }, (_, index) => getMuscleStageMetrics(index / 6));
+
+    for (const metric of ["shoulderWidth", "bicepBulge", "chestBulge", "thighBulge"] as const) {
+      const values = stages.map((stage) => stage[metric]);
+      expect(values.every((value, index) => index === 0 || value > values[index - 1])).toBe(true);
+    }
   });
 });

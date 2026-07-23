@@ -12,6 +12,7 @@ interface TrainingPanelProps {
   busy: boolean
   disabled: boolean
   onComplete: () => void
+  onRestart?: () => void
 }
 
 export function TrainingPanel(props: TrainingPanelProps) {
@@ -33,5 +34,6 @@ export function TrainingPanel(props: TrainingPanelProps) {
       <span aria-hidden="true">✦</span>{props.busy ? '正在记录…' : `完成训练 +${props.xpPerTraining} XP`}
     </button>
     <small className="lianguo-wallet-note">当前可用 {props.availableXp} XP</small>
+    {props.onRestart ? <button className="lianguo-restart" type="button" onClick={props.onRestart} disabled={props.busy || props.disabled} aria-label="重置搭子到 Lv.1">重置为 Lv.1</button> : null}
   </section>
 }

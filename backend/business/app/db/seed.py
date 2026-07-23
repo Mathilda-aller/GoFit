@@ -7,6 +7,110 @@ import json
 import aiosqlite
 
 
+def _time_label_ms(value: object, fallback: int) -> int:
+    if isinstance(value, str):
+        parts = value.strip().split(":")
+        try:
+            if len(parts) == 2:
+                return (int(parts[0]) * 60 + int(parts[1])) * 1000
+        except ValueError:
+            pass
+    return fallback
+
+
+async def _repair_fallback_timestamps(db: aiosqlite.Connection) -> None:
+    cursor = await db.execute(
+        """
+        SELECT id, exercise_id, card_data
+        FROM video_action_cards
+        WHERE json_extract(card_data, '$.contentSource') = 'MOCK_FALLBACK'
+        """
+    )
+    for card_id, exercise_id, raw_card_data in await cursor.fetchall():
+        card_data = json.loads(raw_card_data)
+        steps = (
+            card_data.get("aiResult", {})
+            .get("actionCard", {})
+            .get("learningSide", {})
+            .get("steps", [])
+        )
+        if not steps:
+            continue
+        seed_cursor = await db.execute(
+            """
+            SELECT card_data FROM video_action_cards
+            WHERE exercise_id = ?
+              AND json_extract(card_data, '$.contentSource') = 'SEED_DEMO'
+              AND json_array_length(json_extract(card_data, '$.steps')) > 0
+            ORDER BY CASE WHEN id LIKE 'video_%_demo' THEN 0 ELSE 1 END, created_at DESC
+            LIMIT 1
+            """,
+            (exercise_id,),
+        )
+        seed_row = await seed_cursor.fetchone()
+        if seed_row is None:
+            continue
+        seed_steps = json.loads(seed_row[0]).get("steps", [])
+        starts: list[int] = []
+        for index, step in enumerate(steps):
+            seed_step = seed_steps[index] if index < len(seed_steps) else None
+            label = seed_step[1] if isinstance(seed_step, list) and len(seed_step) > 1 else None
+            start_ms = _time_label_ms(label, index * 1000)
+            if starts and start_ms <= starts[-1]:
+                start_ms = starts[-1] + 1000
+            starts.append(start_ms)
+        for index, step in enumerate(steps):
+            step["startMs"] = starts[index]
+            step["endMs"] = starts[index + 1] if index + 1 < len(starts) else starts[index] + 4000
+        await db.execute(
+            "UPDATE video_action_cards SET card_data = ? WHERE id = ?",
+            (json.dumps(card_data, ensure_ascii=False), card_id),
+        )
+
+
+async def _make_media_artifact_paths_portable(db: aiosqlite.Connection) -> None:
+    """Replace workstation-specific artifact paths with deployable storage paths."""
+    cursor = await db.execute(
+        """
+        SELECT id, card_data
+        FROM video_action_cards
+        WHERE json_type(card_data, '$.mediaArtifacts') = 'array'
+        """
+    )
+    for card_id, raw_card_data in await cursor.fetchall():
+        card_data = json.loads(raw_card_data)
+        curated = card_data.get("curatedMedia") or {}
+        candidates = [
+            curated.get("correctDemo"),
+            *(curated.get("errorDemos") or []),
+        ]
+        paths_by_candidate: dict[str, str] = {}
+        for candidate in candidates:
+            if not isinstance(candidate, dict):
+                continue
+            candidate_id = candidate.get("candidateId")
+            media_url = candidate.get("mediaUrl")
+            prefix = "/api/v1/media/curated/"
+            if isinstance(candidate_id, str) and isinstance(media_url, str) and media_url.startswith(prefix):
+                paths_by_candidate[candidate_id] = (
+                    "storage/curated-clips/" + media_url.removeprefix(prefix)
+                )
+
+        changed = False
+        for artifact in card_data.get("mediaArtifacts") or []:
+            if not isinstance(artifact, dict):
+                continue
+            portable_path = paths_by_candidate.get(artifact.get("candidateId"))
+            if portable_path and artifact.get("filePath") != portable_path:
+                artifact["filePath"] = portable_path
+                changed = True
+        if changed:
+            await db.execute(
+                "UPDATE video_action_cards SET card_data = ? WHERE id = ?",
+                (json.dumps(card_data, ensure_ascii=False), card_id),
+            )
+
+
 async def seed_data(db: aiosqlite.Connection) -> None:
     """Insert fixed demo data. Uses INSERT OR IGNORE for idempotency."""
 
@@ -421,4 +525,6 @@ async def seed_data(db: aiosqlite.Connection) -> None:
         comments,
     )
 
+    await _repair_fallback_timestamps(db)
+    await _make_media_artifact_paths_portable(db)
     await db.commit()

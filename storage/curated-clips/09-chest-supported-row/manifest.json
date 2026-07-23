@@ -1,0 +1,9 @@
+{
+  "schemaVersion": "1.0.0",
+  "standardActionId": "action_chest_supported_row",
+  "actionName": "上斜凳俯卧划船",
+  "sourceVideo": { "videoId": "video_chest_supported_row_demo", "file": "storage/videos/09-chest-supported-row.mp4", "title": "胸托划船：不借腰也能练到上背", "creatorName": "稳稳练背", "sourceUrl": "https://example.test/videos/chest-supported-row" },
+  "correctClips": [{ "candidateId": "action_chest_supported_row_correct_01", "file": "storage/curated-clips/09-chest-supported-row/correct/09-chest-supported-row--correct-01.mp4", "sourceStartMs": 0, "sourceEndMs": 1467 }],
+  "errorClips": [],
+  "reviewNotes": ["error/09-chest-supported-row--error-01.mp4 是多个非连续错误画面的合集，不能绑定为单一原视频时间范围；文件已保留但未注册。"]
+}

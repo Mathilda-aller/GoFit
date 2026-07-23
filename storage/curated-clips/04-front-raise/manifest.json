@@ -1,0 +1,8 @@
+{
+  "schemaVersion": "1.0.0",
+  "standardActionId": "action_front_raise",
+  "actionName": "哑铃前平举",
+  "sourceVideo": { "videoId": "video_front_raise_demo", "file": "storage/videos/04-front-raise.mp4", "title": "前平举：身体别跟着重量后仰", "creatorName": "阿元练肩", "sourceUrl": "https://example.test/videos/front-raise" },
+  "correctClips": [{ "candidateId": "action_front_raise_correct_01", "file": "storage/curated-clips/04-front-raise/correct/04-front-raise--correct-01.mp4", "sourceStartMs": 6533, "sourceEndMs": 8205 }],
+  "errorClips": [{ "candidateId": "action_front_raise_error_01", "file": "storage/curated-clips/04-front-raise/error/04-front-raise--error-01.mp4", "sourceStartMs": 9667, "sourceEndMs": 11269 }]
+}

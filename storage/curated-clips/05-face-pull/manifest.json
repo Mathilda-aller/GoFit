@@ -1,0 +1,8 @@
+{
+  "schemaVersion": "1.0.0",
+  "standardActionId": "action_face_pull",
+  "actionName": "绳索面拉",
+  "sourceVideo": { "videoId": "video_face_pull_demo", "file": "storage/videos/05-face-pull.mp4", "title": "绳索面拉：拉向眉眼，不是拉向胸口", "creatorName": "训练家101", "sourceUrl": "https://example.test/videos/face-pull" },
+  "correctClips": [{ "candidateId": "action_face_pull_correct_01", "file": "storage/curated-clips/05-face-pull/correct/05-face-pull--correct-01.mp4", "sourceStartMs": 52867, "sourceEndMs": 56002 }],
+  "errorClips": [{ "candidateId": "action_face_pull_error_01", "file": "storage/curated-clips/05-face-pull/error/05-face-pull--error-01.mp4", "sourceStartMs": 5067, "sourceEndMs": 8945 }]
+}

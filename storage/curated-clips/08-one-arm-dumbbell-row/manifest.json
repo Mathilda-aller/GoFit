@@ -1,0 +1,8 @@
+{
+  "schemaVersion": "1.0.0",
+  "standardActionId": "action_one_arm_dumbbell_row",
+  "actionName": "单臂哑铃划船",
+  "sourceVideo": { "videoId": "video_one_arm_row_demo", "file": "storage/videos/08-one-arm-dumbbell-row.mp4", "title": "单臂哑铃划船：髋和肩别跟着翻", "creatorName": "力量新手村", "sourceUrl": "https://example.test/videos/one-arm-row" },
+  "correctClips": [{ "candidateId": "action_one_arm_dumbbell_row_correct_01", "file": "storage/curated-clips/08-one-arm-dumbbell-row/correct/08-one-arm-dumbbell-row--correct-01.mp4", "sourceStartMs": 50800, "sourceEndMs": 54900 }],
+  "errorClips": [{ "candidateId": "action_one_arm_dumbbell_row_error_01", "file": "storage/curated-clips/08-one-arm-dumbbell-row/error/08-one-arm-dumbbell-row--error-01.mp4", "sourceStartMs": 5267, "sourceEndMs": 8834 }]
+}

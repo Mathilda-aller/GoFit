@@ -56,10 +56,23 @@
   .lianguo-phone { width: min(100%, 430px); margin-inline: auto; }
 }
 @media (max-width: 500px) {
-  .lianguo-intro h1 { font-size: 42px; }
+  .lianguo-training-view { gap: 24px; }
+  .lianguo-intro h1 { margin-block: 18px 14px; font-size: 40px; }
+  .lianguo-intro > p { font-size: 15px; }
   .lianguo-metrics div { padding: 13px 8px; }
   .lianguo-metrics b { font-size: 22px; }
-  .lianguo-phone { min-height: 610px; border-width: 8px; border-radius: 38px; }
-  .lianguo-avatar-stage { min-height: 360px; }
+  .lianguo-xp-row { align-items: flex-start; gap: 10px; }
+  .lianguo-xp-row span { min-width: 0; }
+  .lianguo-xp-row b { flex: 0 0 auto; }
+  .lianguo-phone { min-height: 600px; padding: 28px 14px 16px; border-width: 8px; border-radius: 38px; }
+  .lianguo-avatar-stage { min-height: 340px; }
   .lianguo-side-notes { grid-template-columns: 1fr; }
 }
+@media (max-width: 360px) {
+  .lianguo-intro h1 { font-size: 34px; }
+  .lianguo-phone { min-height: 570px; }
+  .lianguo-avatar-stage { min-height: 310px; }
+}
+.lianguo-restart { display: block; margin: 6px auto 0; padding: 4px 8px; border: 0; color: #64748b; background: transparent; cursor: pointer; font-size: 11px; text-decoration: underline; text-underline-offset: 3px; }
+.lianguo-restart:hover:not(:disabled) { color: #111827; }
+.lianguo-restart:disabled { cursor: not-allowed; opacity: 0.5; }

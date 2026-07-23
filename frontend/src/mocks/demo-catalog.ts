@@ -109,8 +109,8 @@ export const demoCatalog: DemoCatalogItem[] = [
     equipment: ["哑铃"],
     video: { videoId: "video_reverse_fly_demo", title: "反向飞鸟：别让斜方肌抢活", creatorName: "小贺的训练笔记", sourceUrl: "https://example.test/videos/reverse-fly", assetFileName: "03-reverse-fly.mp4", durationLabel: "00:48", previewSecond: 7 },
     card: { cue: "俯身稳 → 肘向外 → 慢慢收", steps: ["髋部向后折叠，保持脊柱自然。", "肘部微屈，向身体两侧展开。", "后肩收紧后停顿，再控制回到起点。"], reminder: "动作幅度不必很大，优先保持后肩持续发力。", mistake: "耸肩并用手腕把哑铃甩高。", correction: "放松手腕，让手肘沿弧线向外展开。", tips: ["背部保持稳定。", "手肘向外展开。", "避免耸肩。"] },
-    experience: { problemTitle: "反向飞鸟总是上背酸？", methodName: "把动作做小，手肘向外", summary: "练友更容易通过小幅度、慢速度和放松手腕找到后肩。", disagreement: "不同俯身角度会改变上背参与程度。", projectedMentions: 16 },
-    comments: [["后束补课", "幅度做小以后，终于不是斜方肌先酸了。"], ["不甩哑铃", "手肘往外走、手腕放松这个提示特别有用。"]],
+    experience: { problemTitle: "反向飞鸟手臂更酸？", methodName: "减轻重量，用手肘向外打开", summary: "练友更容易通过减轻重量、放松握力和用手肘带动找到后肩。", disagreement: "不同俯身角度会改变上背参与程度。", projectedMentions: 16 },
+    comments: [["后束补课", "重量降下来、握力放松以后，手臂没那么抢力，后束感觉清楚多了。"], ["不甩哑铃", "手肘往外走、手腕放松这个提示特别有用。"]],
   }),
   defineItem({
     exerciseId: "action_front_raise",

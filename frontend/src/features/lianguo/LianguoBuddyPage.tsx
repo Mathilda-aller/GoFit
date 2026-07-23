@@ -13,15 +13,18 @@ export function LianguoBuddyPage() {
   const completeBuddyTraining = useAppStore((state) => state.completeBuddyTraining);
   const purchaseBuddyItem = useAppStore((state) => state.purchaseBuddyItem);
   const equipBuddyItem = useAppStore((state) => state.equipBuddyItem);
+  const resetBuddyProgress = useAppStore((state) => state.resetBuddyProgress);
   const completedItems = useMemo(
     () => sessions.flatMap((session) => session.items).filter((item) => item.state === "COMPLETED"),
     [sessions],
   );
   const localTrainingCount = getBuddyTrainingCount(buddyProgress);
-  const totalTrainingCount = localTrainingCount || me?.completedActionCount || completedItems.length;
+  const existingTrainingCount = Math.max(me?.completedActionCount ?? 0, completedItems.length);
+  const totalTrainingCount = existingTrainingCount + localTrainingCount;
 
   return (
     <LianguoFitness
+      stateMode="controlled"
       user={{ id: me?.userId ?? "local_buddy_user", nickname: me?.nickname ?? "小练用户" }}
       totalTrainingCount={totalTrainingCount}
       totalTrainingXp={buddyProgress.totalTrainingXp}
@@ -32,6 +35,7 @@ export function LianguoBuddyPage() {
       onCompleteTraining={completeBuddyTraining}
       onPurchaseItem={purchaseBuddyItem}
       onEquipItem={equipBuddyItem}
+      onRestart={resetBuddyProgress}
       onClose={() => {
         void navigate("/me");
       }}

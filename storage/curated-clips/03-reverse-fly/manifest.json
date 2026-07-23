@@ -1,0 +1,8 @@
+{
+  "schemaVersion": "1.0.0",
+  "standardActionId": "action_reverse_fly",
+  "actionName": "俯身反向飞鸟",
+  "sourceVideo": { "videoId": "video_reverse_fly_demo", "file": "storage/videos/03-reverse-fly.mp4", "title": "反向飞鸟：别让斜方肌抢活", "creatorName": "小贺的训练笔记", "sourceUrl": "https://example.test/videos/reverse-fly" },
+  "correctClips": [{ "candidateId": "action_reverse_fly_correct_01", "file": "storage/curated-clips/03-reverse-fly/correct/03-reverse-fly--correct-01.mp4", "sourceStartMs": 31800, "sourceEndMs": 34377 }],
+  "errorClips": [{ "candidateId": "action_reverse_fly_error_01", "file": "storage/curated-clips/03-reverse-fly/error/03-reverse-fly--error-01.mp4", "sourceStartMs": 0, "sourceEndMs": 2655 }]
+}

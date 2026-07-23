@@ -9,10 +9,23 @@ __pycache__/
 backend/ai/tmp/
 *.db
 *.sqlite3
+!backend/business/gofit-runtime.db
 
 storage/*
 !storage/.gitkeep
+!storage/videos/
+!storage/videos/**
+!storage/curated-clips/
+!storage/curated-clips/**
 
 frontend/node_modules/
 frontend/dist/
 frontend/*.tsbuildinfo
+
+.runtime/
+.tmp_pycache_*/
+debug/
+*.log
+frontend/.env.local
+frontend/.vercel/
+backend/business/storage/

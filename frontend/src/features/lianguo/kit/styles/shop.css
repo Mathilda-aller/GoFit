@@ -40,5 +40,10 @@
   .lianguo-item-list { grid-template-columns: 1fr 1fr; gap: 8px; }
   .lianguo-shop-category { padding: 13px; }
   .lianguo-item-preview { height: 165px; }
-  .lianguo-item-preview .lianguo-avatar { width: 125px; }
+  .lianguo-item-preview .lianguo-avatar { width: 100%; max-width: 125px; }
+}
+@media (max-width: 360px) {
+  .lianguo-item-list { grid-template-columns: 1fr; }
+  .lianguo-item-preview { height: 190px; }
+  .lianguo-item-preview .lianguo-avatar { max-width: 145px; }
 }

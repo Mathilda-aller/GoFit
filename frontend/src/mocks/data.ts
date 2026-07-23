@@ -1,8 +1,14 @@
 import rawLateralRaise from "./lateral-raise.json";
+import chestSupportedRowCover from "./covers/chest-supported-row.webp";
+import facePullCover from "./covers/face-pull.webp";
 import frontRaiseCover from "./covers/front-raise.webp";
+import latPulldownCover from "./covers/lat-pulldown.webp";
 import lateralRaiseCover from "./covers/lateral-raise.webp";
+import oneArmDumbbellRowCover from "./covers/one-arm-dumbbell-row.webp";
 import reverseFlyCover from "./covers/reverse-fly.webp";
+import seatedCableRowCover from "./covers/seated-cable-row.webp";
 import shoulderPressCover from "./covers/shoulder-press.webp";
+import straightArmPulldownCover from "./covers/straight-arm-pulldown.webp";
 import {
   actionCardResponseSchema,
   type ActionCardResponse,
@@ -142,6 +148,12 @@ const posterByVideoId: Partial<Record<string, string>> = {
   video_front_raise_demo: frontRaiseCover,
   video_reverse_fly_demo: reverseFlyCover,
   video_shoulder_press_demo: shoulderPressCover,
+  video_face_pull_demo: facePullCover,
+  video_lat_pulldown_demo: latPulldownCover,
+  video_seated_row_demo: seatedCableRowCover,
+  video_one_arm_row_demo: oneArmDumbbellRowCover,
+  video_chest_supported_row_demo: chestSupportedRowCover,
+  video_straight_arm_pulldown_demo: straightArmPulldownCover,
 };
 
 export const demoVideos: DemoVideo[] = demoCatalog.map((item) => ({
@@ -212,8 +224,28 @@ export const experienceByExerciseId: Record<string, DemoExperience> = Object.fro
   }),
 );
 
-export function getDemoExperience(exerciseId: string): DemoExperience {
-  return experienceByExerciseId[exerciseId] ?? experienceByExerciseId.action_lateral_raise;
+export const experienceByVideoId: Record<string, DemoExperience> = Object.fromEntries(
+  demoCatalog.map((item) => [item.video.videoId, experienceByExerciseId[item.exerciseId]]),
+);
+
+const experienceExerciseAliases: Record<string, string> = {
+  exercise_lateral_raise: "action_lateral_raise",
+  exercise_front_raise: "action_front_raise",
+  exercise_reverse_fly: "action_reverse_fly",
+  exercise_shoulder_press: "action_shoulder_press",
+  exercise_face_pull: "action_face_pull",
+  exercise_lat_pulldown: "action_lat_pulldown",
+  exercise_seated_row: "action_seated_cable_row",
+  exercise_one_arm_row: "action_one_arm_dumbbell_row",
+  exercise_chest_supported_row: "action_chest_supported_row",
+  exercise_straight_arm_pulldown: "action_straight_arm_pulldown",
+};
+
+export function getDemoExperience(exerciseId: string, videoId?: string): DemoExperience {
+  const byVideo = videoId ? experienceByVideoId[videoId] : undefined;
+  const normalizedExerciseId = experienceExerciseAliases[exerciseId] ?? exerciseId;
+  const byExercise = experienceByExerciseId[normalizedExerciseId];
+  return byVideo ?? byExercise ?? experienceByExerciseId.action_lateral_raise;
 }
 
 // 保留旧导出，供尚未迁移的调用方获得默认侧平举经验。

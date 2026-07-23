@@ -1,0 +1,8 @@
+{
+  "schemaVersion": "1.0.0",
+  "standardActionId": "action_seated_cable_row",
+  "actionName": "坐姿绳索划船",
+  "sourceVideo": { "videoId": "video_seated_row_demo", "file": "storage/videos/07-seated-cable-row.mp4", "title": "坐姿划船：别把身体变成钟摆", "creatorName": "背练研究所", "sourceUrl": "https://example.test/videos/seated-row" },
+  "correctClips": [{ "candidateId": "action_seated_cable_row_correct_01", "file": "storage/curated-clips/07-seated-cable-row/correct/07-seated-cable-row--correct-01.mp4", "sourceStartMs": 59367, "sourceEndMs": 63407 }],
+  "errorClips": [{ "candidateId": "action_seated_cable_row_error_01", "file": "storage/curated-clips/07-seated-cable-row/error/07-seated-cable-row--error-01.mp4", "sourceStartMs": 533, "sourceEndMs": 4109 }]
+}

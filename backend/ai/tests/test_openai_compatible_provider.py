@@ -15,6 +15,35 @@ def test_extract_json_accepts_plain_and_fenced_json() -> None:
     assert OpenAICompatibleProvider._extract_json(
         '```json\n{"ok": true}\n```'
     ) == {"ok": True}
+    assert OpenAICompatibleProvider._extract_json(
+        '{"ok": true}\n```'
+    ) == {"ok": True}
+    assert OpenAICompatibleProvider._extract_json(
+        '结果如下：\n{"ok": true}\n以上是分析结果。'
+    ) == {"ok": True}
+
+
+def test_video_analysis_normalizes_common_model_field_variants(tmp_path) -> None:
+    frames = [
+        FrameSample(tmp_path / "one.jpg", 1000),
+        FrameSample(tmp_path / "two.jpg", 3000),
+    ]
+    normalized = OpenAICompatibleProvider._normalize_video_analysis(
+        {
+            "frames": [
+                {"id": "first", "timestampMs": 1000, "text": "双手持哑铃", "confidence": 95},
+                {"id": "second", "timestampMs": 3000, "text": "手臂向前抬起"},
+            ]
+        },
+        frames=frames,
+        duration_ms=5000,
+    )
+
+    assert [item["observationId"] for item in normalized["observations"]] == ["first", "second"]
+    assert normalized["observations"][0]["startMs"] == 1000
+    assert normalized["observations"][0]["endMs"] == 3000
+    assert normalized["observations"][0]["confidence"] == 0.95
+    assert normalized["mediaProposals"] == []
 
 
 def test_missing_model_configuration_is_clear(tmp_path) -> None:

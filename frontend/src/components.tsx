@@ -252,7 +252,8 @@ export function TrainingDataView({
   footerAction?: ReactNode;
 }) {
   const card = response.actionCard;
-  const cueSteps = card.trainingSide.quickCue.text.split("→").map((step) => step.trim());
+  const cueSteps = card.trainingSide.quickCue.text.split("→").map((step) => step.trim()).filter(Boolean);
+  const hasCueSequence = cueSteps.length > 1;
   return (
     <div className="training-data-view">
       <section className="training-action-header">
@@ -267,15 +268,21 @@ export function TrainingDataView({
           caption="正确示范"
         />
         <p className="training-cue-line" aria-label={card.trainingSide.quickCue.text}>
-          <span className="cue-sequence" aria-hidden="true">
-            <span className="cue-slider" />
-            {cueSteps.map((step, index) => (
-              <span className="cue-stage" key={`${step}-${index}`}>
-                <span className="cue-phrase">{step}</span>
-                {index < cueSteps.length - 1 ? <span className="cue-arrow">→</span> : null}
-              </span>
-            ))}
-          </span>
+          {hasCueSequence ? (
+            <span className="cue-sequence" aria-hidden="true">
+              <span className="cue-slider" />
+              {cueSteps.map((step, index) => (
+                <span className="cue-stage" key={`${step}-${index}`}>
+                  <span className="cue-phrase">{step}</span>
+                  {index < cueSteps.length - 1 ? <span className="cue-arrow">→</span> : null}
+                </span>
+              ))}
+            </span>
+          ) : (
+            <span className="cue-text" aria-hidden="true">
+              {card.trainingSide.quickCue.text}
+            </span>
+          )}
         </p>
         <ul className="training-tips">
           {card.trainingSide.quickTips.map((tip) => (

@@ -74,7 +74,12 @@ class OpenAICompatibleProvider:
             request_id=request_id,
         )
         try:
-            return VideoAnalysis.model_validate(self._extract_json(raw))
+            payload = self._normalize_video_analysis(
+                self._extract_json(raw),
+                frames=frames,
+                duration_ms=duration_ms,
+            )
+            return VideoAnalysis.model_validate(payload)
         except (ValidationError, ValueError, json.JSONDecodeError) as exc:
             raise SkillError(
                 "VIDEO_ANALYSIS_INVALID",
@@ -202,6 +207,7 @@ class OpenAICompatibleProvider:
                 "version": self.settings.action_card_model,
             }
             self._apply_confirmed_action(request, result_payload)
+            self._apply_confirmed_media(request, result_payload)
             result = ActionCardBuildResult.model_validate(result_payload)
             return result.model_copy(
                 update={
@@ -245,6 +251,142 @@ class OpenAICompatibleProvider:
                 "equipment": candidate.equipment,
             }
         )
+
+    @staticmethod
+    def _apply_confirmed_media(
+        request: ActionCardBuildRequest,
+        result_payload: dict[str, Any],
+    ) -> None:
+        """Models write copy; the business-provided media selection is immutable."""
+        correct = [item for item in request.media_candidates if item.kind.value == "CORRECT_DEMO"]
+        errors = [item for item in request.media_candidates if item.kind.value == "ERROR_DEMO"]
+        if len(correct) != 1:
+            return
+        card = result_payload.get("actionCard")
+        if not isinstance(card, dict):
+            raise ValueError("model result must contain actionCard")
+        learning = card.get("learningSide")
+        training = card.get("trainingSide")
+        if not isinstance(learning, dict) or not isinstance(training, dict):
+            raise ValueError("model result must contain both card sides")
+        correct_payload = correct[0].model_dump(by_alias=True)
+        learning["correctDemo"] = correct_payload
+        training["loopDemo"] = correct_payload
+
+        raw_errors = learning.get("commonErrors")
+        if not isinstance(raw_errors, list):
+            raw_errors = []
+        if not errors:
+            learning["commonErrors"] = []
+            return
+        if len(raw_errors) != len(errors):
+            result_payload["status"] = "NEEDS_REVIEW"
+            reasons = result_payload.setdefault("needsReviewReasons", [])
+            if isinstance(reasons, list):
+                reasons.append("模型生成的错误说明数量与人工错误片段数量不一致。")
+        if len(raw_errors) < len(errors):
+            return
+        normalized_errors = []
+        for raw_error, candidate in zip(raw_errors, errors, strict=False):
+            if not isinstance(raw_error, dict):
+                continue
+            candidate_payload = candidate.model_dump(by_alias=True)
+            normalized_errors.append({
+                **raw_error,
+                "errorDemo": candidate_payload,
+                "evidenceIds": candidate_payload["evidenceIds"],
+            })
+        learning["commonErrors"] = normalized_errors
+
+    @staticmethod
+    def _normalize_video_analysis(
+        payload: dict[str, Any],
+        *,
+        frames: list[FrameSample],
+        duration_ms: int,
+    ) -> dict[str, Any]:
+        """Accept common model field variants while returning the strict contract."""
+        raw_observations = payload.get("observations")
+        if not isinstance(raw_observations, list):
+            for key in ("frames", "frameObservations", "analysis"):
+                value = payload.get(key)
+                if isinstance(value, list):
+                    raw_observations = value
+                    break
+        if not isinstance(raw_observations, list):
+            raw_observations = []
+
+        frame_times = sorted(frame.timestamp_ms for frame in frames)
+        observations: list[dict[str, Any]] = []
+        for index, raw in enumerate(raw_observations):
+            if not isinstance(raw, dict):
+                continue
+            fallback_start = frame_times[min(index, len(frame_times) - 1)] if frame_times else 0
+            start = OpenAICompatibleProvider._integer_field(
+                raw, "startMs", "startTimeMs", "timestampMs", default=fallback_start
+            )
+            fallback_end = (
+                frame_times[index + 1]
+                if index + 1 < len(frame_times)
+                else min(duration_ms, start + 1000)
+            )
+            end = OpenAICompatibleProvider._integer_field(
+                raw, "endMs", "endTimeMs", default=fallback_end
+            )
+            start = max(0, min(start, max(duration_ms - 1, 0)))
+            end = max(start + 1, min(end, duration_ms))
+            description = raw.get("description") or raw.get("text") or raw.get("observation")
+            if not isinstance(description, str) or not description.strip():
+                continue
+            confidence = raw.get("confidence")
+            if isinstance(confidence, (int, float)) and not isinstance(confidence, bool):
+                confidence = float(confidence)
+                if 1 < confidence <= 100:
+                    confidence /= 100
+                confidence = max(0.0, min(confidence, 1.0))
+            else:
+                confidence = None
+            observations.append({
+                "observationId": str(raw.get("observationId") or raw.get("id") or f"frame_{index + 1:03d}"),
+                "startMs": start,
+                "endMs": end,
+                "description": description.strip(),
+                "onScreenText": raw.get("onScreenText") if isinstance(raw.get("onScreenText"), str) else None,
+                "confidence": confidence,
+            })
+
+        valid_ids = {item["observationId"] for item in observations}
+        proposals: list[dict[str, Any]] = []
+        raw_proposals = payload.get("mediaProposals")
+        if isinstance(raw_proposals, list):
+            for index, raw in enumerate(raw_proposals):
+                if not isinstance(raw, dict):
+                    continue
+                kind = str(raw.get("kind", "")).upper()
+                ids = raw.get("observationIds")
+                start = OpenAICompatibleProvider._integer_field(raw, "startMs", default=-1)
+                end = OpenAICompatibleProvider._integer_field(raw, "endMs", default=-1)
+                if kind not in {"POSTER", "CORRECT_DEMO", "ERROR_DEMO"} or not isinstance(ids, list):
+                    continue
+                ids = [str(item) for item in ids if str(item) in valid_ids]
+                if not ids or start < 0 or end <= start or end > duration_ms:
+                    continue
+                proposals.append({
+                    "candidateId": str(raw.get("candidateId") or f"proposal_{index + 1:03d}"),
+                    "kind": kind,
+                    "startMs": start,
+                    "endMs": end,
+                    "observationIds": ids,
+                })
+        return {"observations": observations, "mediaProposals": proposals}
+
+    @staticmethod
+    def _integer_field(payload: dict[str, Any], *keys: str, default: int) -> int:
+        for key in keys:
+            value = payload.get(key)
+            if isinstance(value, (int, float)) and not isinstance(value, bool):
+                return int(value)
+        return default
 
     def _request(
         self,
@@ -328,9 +470,10 @@ class OpenAICompatibleProvider:
         if cleaned.startswith("```"):
             first_newline = cleaned.find("\n")
             cleaned = cleaned[first_newline + 1 :] if first_newline >= 0 else cleaned
-            if cleaned.endswith("```"):
-                cleaned = cleaned[:-3]
-        value = json.loads(cleaned.strip())
+        object_start = cleaned.find("{")
+        if object_start < 0:
+            raise json.JSONDecodeError("No JSON object found", cleaned, 0)
+        value, _ = json.JSONDecoder().raw_decode(cleaned[object_start:])
         if not isinstance(value, dict):
             raise ValueError("model result must be a JSON object")
         return value
@@ -344,6 +487,9 @@ class OpenAICompatibleProvider:
             "onScreenText 和 confidence。根据连续画面提出 POSTER、CORRECT_DEMO、"
             "ERROR_DEMO 候选区间；只有画面明确在展示错误时才能使用 ERROR_DEMO。"
             "候选使用 observationIds 绑定观察。时间必须在视频范围内。"
-            "严格返回 JSON：{\"observations\": [...], \"mediaProposals\": [...]}。"
+            "严格返回 JSON：{\"observations\":[{\"observationId\":\"obs_001\","
+            "\"startMs\":0,\"endMs\":1000,\"description\":\"可见内容\","
+            "\"onScreenText\":null,\"confidence\":0.9}],\"mediaProposals\":[]}。"
+            "字段名、毫秒整数和枚举 POSTER/CORRECT_DEMO/ERROR_DEMO 必须完全一致。"
             f"视频标题：{video_title}；视频时长：{duration_ms}ms。"
         )

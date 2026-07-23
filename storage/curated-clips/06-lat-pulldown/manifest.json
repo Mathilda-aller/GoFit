@@ -1,0 +1,8 @@
+{
+  "schemaVersion": "1.0.0",
+  "standardActionId": "action_lat_pulldown",
+  "actionName": "高位下拉",
+  "sourceVideo": { "videoId": "video_lat_pulldown_demo", "file": "storage/videos/06-lat-pulldown.mp4", "title": "高位下拉：新手找到背部发力的 3 个提示", "creatorName": "背部训练笔记", "sourceUrl": "https://example.test/videos/lat-pulldown" },
+  "correctClips": [{ "candidateId": "action_lat_pulldown_correct_01", "file": "storage/curated-clips/06-lat-pulldown/correct/06-lat-pulldown--correct-01.mp4", "sourceStartMs": 58700, "sourceEndMs": 63181 }],
+  "errorClips": [{ "candidateId": "action_lat_pulldown_error_01", "file": "storage/curated-clips/06-lat-pulldown/error/06-lat-pulldown--error-01.mp4", "sourceStartMs": 4367, "sourceEndMs": 7641 }]
+}

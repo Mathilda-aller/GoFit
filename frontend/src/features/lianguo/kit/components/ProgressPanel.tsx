@@ -1,12 +1,16 @@
+import { MAX_LEVEL } from '../defaults'
+
 interface ProgressPanelProps {
   count: number
   level: number
   totalXp: number
   availableXp: number
   progress: number
+  xpPerTraining: number
 }
 
-export function ProgressPanel({ count, level, totalXp, availableXp, progress }: ProgressPanelProps) {
+export function ProgressPanel({ count, level, totalXp, availableXp, progress, xpPerTraining }: ProgressPanelProps) {
+  const remaining = Math.max(0, level * xpPerTraining - totalXp)
   return <section className="lianguo-progress" aria-label="成长进度">
     <div className="lianguo-metrics">
       <div><b>{count}</b><span>累计训练</span></div>
@@ -15,7 +19,7 @@ export function ProgressPanel({ count, level, totalXp, availableXp, progress }: 
     </div>
     <div className="lianguo-xp-summary">
       <div className="lianguo-xp-row">
-        <span>{level >= 5 ? '肌肉成长已满级' : `距离 Lv.${level + 1}`}</span>
+        <span>{level >= MAX_LEVEL ? 'Lv.7 肌肉成长已满级 · XP 继续累计' : `距离 Lv.${level + 1} 还需 ${remaining} XP`}</span>
         <b>{Math.round(progress * 100)}%</b>
       </div>
       <div className="lianguo-xp-bar"><i style={{ width: `${progress * 100}%` }} /></div>

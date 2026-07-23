@@ -130,8 +130,18 @@ class FitnessVideoReconstructionWorkflow:
                 duration_ms=duration_ms,
                 request_id=request.request_id,
             )
+            # OCR needs far fewer frames than motion understanding. Keeping the
+            # request at twelve images avoids multimodal payload/model limits
+            # while preserving timestamps across the whole video.
+            if len(frames) <= 12:
+                ocr_frames = frames
+            else:
+                ocr_frames = [
+                    frames[round(index * (len(frames) - 1) / 11)]
+                    for index in range(12)
+                ]
             ocr_analysis = self.text_recognizer.recognize_text(
-                frames,
+                ocr_frames,
                 request_id=request.request_id,
             )
 

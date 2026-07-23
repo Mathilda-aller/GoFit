@@ -1,0 +1,8 @@
+{
+  "schemaVersion": "1.0.0",
+  "standardActionId": "action_lateral_raise",
+  "actionName": "哑铃侧平举",
+  "sourceVideo": { "videoId": "video_lateral_raise_demo", "file": "storage/videos/01-lateral-raise.mp4", "title": "侧平举总是手臂酸？新手先记住这 3 点", "creatorName": "阿哲的训练课", "sourceUrl": "https://example.test/videos/lateral-raise" },
+  "correctClips": [{ "candidateId": "action_lateral_raise_correct_01", "file": "storage/curated-clips/01-lateral-raise/correct/01-lateral-raise--correct-01.mp4", "sourceStartMs": 86433, "sourceEndMs": 89939 }],
+  "errorClips": [{ "candidateId": "action_lateral_raise_error_01", "file": "storage/curated-clips/01-lateral-raise/error/01-lateral-raise--error-01.mp4", "sourceStartMs": 4033, "sourceEndMs": 7446 }]
+}

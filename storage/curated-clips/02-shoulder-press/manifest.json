@@ -1,0 +1,8 @@
+{
+  "schemaVersion": "1.0.0",
+  "standardActionId": "action_shoulder_press",
+  "actionName": "坐姿哑铃推肩",
+  "sourceVideo": { "videoId": "video_shoulder_press_demo", "file": "storage/videos/02-shoulder-press.mp4", "title": "坐姿推肩：新手先把躯干稳定住", "creatorName": "GoFit Demo Coach", "sourceUrl": "https://example.test/videos/shoulder-press" },
+  "correctClips": [{ "candidateId": "action_shoulder_press_correct_01", "file": "storage/curated-clips/02-shoulder-press/correct/02-shoulder-press--correct-01.mp4", "sourceStartMs": 28600, "sourceEndMs": 31270 }],
+  "errorClips": [{ "candidateId": "action_shoulder_press_error_01", "file": "storage/curated-clips/02-shoulder-press/error/02-shoulder-press--error-01.mp4", "sourceStartMs": 0, "sourceEndMs": 3553 }]
+}

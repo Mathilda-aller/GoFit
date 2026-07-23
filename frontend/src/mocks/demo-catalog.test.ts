@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { demoCatalog, relatedPeerComments, videoWorkflowRequests } from "./demo-catalog";
-import { actionCards, experienceByExerciseId } from "./data";
+import { actionCards, experienceByExerciseId, getDemoExperience } from "./data";
 
 describe("demo catalog relationships", () => {
   it("contains five shoulder and five back actions with stable one-to-one video cards", () => {
@@ -22,5 +22,15 @@ describe("demo catalog relationships", () => {
       expect(experienceByExerciseId[item.exerciseId]?.groups.length).toBeGreaterThan(0);
     }
     expect(new Set(relatedPeerComments.map((comment) => comment.videoId)).size).toBe(4);
+  });
+
+  it("resolves distinct mock experiences from frontend actions, business exercises, and video cards", () => {
+    expect(getDemoExperience("action_reverse_fly").problemTitle).toBe("反向飞鸟手臂更酸？");
+    expect(getDemoExperience("exercise_reverse_fly").problemTitle).toBe("反向飞鸟手臂更酸？");
+    expect(getDemoExperience("action_lateral_raise", "video_reverse_fly_demo").problemTitle).toBe("反向飞鸟手臂更酸？");
+
+    const experiences = demoCatalog.map((item) => getDemoExperience(item.exerciseId, item.video.videoId));
+    expect(new Set(experiences.map((experience) => experience.problemTitle)).size).toBe(demoCatalog.length);
+    expect(new Set(experiences.map((experience) => experience.groups[0]?.id)).size).toBe(demoCatalog.length);
   });
 });

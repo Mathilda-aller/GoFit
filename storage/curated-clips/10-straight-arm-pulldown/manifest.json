@@ -1,0 +1,8 @@
+{
+  "schemaVersion": "1.0.0",
+  "standardActionId": "action_straight_arm_pulldown",
+  "actionName": "直臂下压",
+  "sourceVideo": { "videoId": "video_straight_arm_pulldown_demo", "file": "storage/videos/10-straight-arm-pulldown.mp4", "title": "直臂下压：保持手肘角度，别做成肱三头下压", "creatorName": "背阔肌说明书", "sourceUrl": "https://example.test/videos/straight-arm-pulldown" },
+  "correctClips": [{ "candidateId": "action_straight_arm_pulldown_correct_01", "file": "storage/curated-clips/10-straight-arm-pulldown/correct/10-straight-arm-pulldown--correct-01.mp4", "sourceStartMs": 55533, "sourceEndMs": 65819 }],
+  "errorClips": [{ "candidateId": "action_straight_arm_pulldown_error_01", "file": "storage/curated-clips/10-straight-arm-pulldown/error/10-straight-arm-pulldown--error-01.mp4", "sourceStartMs": 4267, "sourceEndMs": 6937 }]
+}

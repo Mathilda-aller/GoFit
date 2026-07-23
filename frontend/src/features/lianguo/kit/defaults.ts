@@ -1,6 +1,6 @@
 import type { EquippedOutfit, ShopItem } from './types'
 
-export const MAX_LEVEL = 5
+export const MAX_LEVEL = 7
 export const DEFAULT_OUTFIT: EquippedOutfit = {
   clothingItemId: 'clothing-sport-tank',
   hairItemId: 'hair-buzz-cut',
@@ -23,5 +23,17 @@ export const DEFAULT_SHOP_ITEMS: ShopItem[] = [
   { id: 'hat-cap', name: '训练鸭舌帽', price: 150, color: '#161d2a', category: 'hat', style: 'cap', tag: '街头' },
 ]
 
-export const getLevelFromXp = (xp: number, xpPerLevel = 150): number =>
-  Math.min(MAX_LEVEL, Math.max(1, Math.ceil(Math.max(0, xp) / xpPerLevel)))
+export const XP_PER_TRAINING = 150
+
+/** 0 XP 为 Lv.1；每 150 XP 提升一级，900 XP 起为 Lv.7，之后 XP 继续累计。 */
+export const calculateLevel = (xp: number, xpPerTraining = XP_PER_TRAINING): number => {
+  const step = Math.max(1, xpPerTraining)
+  return Math.min(MAX_LEVEL, Math.max(1, Math.floor(Math.max(0, xp) / step) + 1))
+}
+
+/** 返回七个离散成长阶段：0、1/6、2/6、3/6、4/6、5/6、1。 */
+export const calculateGrowth = (xp: number, xpPerTraining = XP_PER_TRAINING): number =>
+  (calculateLevel(xp, xpPerTraining) - 1) / (MAX_LEVEL - 1)
+
+/** @deprecated 请使用 calculateLevel。 */
+export const getLevelFromXp = calculateLevel

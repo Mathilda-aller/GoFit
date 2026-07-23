@@ -47,7 +47,9 @@ clip_root = Path(_temp_dir.name) / "storage" / "curated-clips" / "01-lateral-rai
 
 from fastapi.testclient import TestClient  # noqa: E402
 
+from app.api.routes.videos import _media_artifacts  # noqa: E402
 from app.main import app  # noqa: E402
+from app.services.curated_media import load_manifest_for_video  # noqa: E402
 
 
 class BusinessApiFlowTest(unittest.TestCase):
@@ -81,6 +83,11 @@ class BusinessApiFlowTest(unittest.TestCase):
             generated = client.get(f"/api/v1/action-cards/{imported['cardId']}").json()
             self.assertEqual(generated["cardData"]["contentSource"], "MOCK_FALLBACK")
             self.assertIn("/media/curated/", generated["cardData"]["curatedMedia"]["correctDemo"]["mediaUrl"])
+            fallback_steps = generated["cardData"]["aiResult"]["actionCard"]["learningSide"]["steps"]
+            self.assertEqual(
+                len({(step["startMs"], step["endMs"]) for step in fallback_steps}),
+                len(fallback_steps),
+            )
 
             ai_data = dict(generated["cardData"])
             ai_data["contentSource"] = "AI"
@@ -137,6 +144,25 @@ class BusinessApiFlowTest(unittest.TestCase):
             another_session = client.post(f"/api/v1/plans/{plan['id']}/sessions").json()
             ended = client.post(f"/api/v1/sessions/{another_session['id']}/end").json()
             self.assertEqual(ended["status"], "ENDED")
+
+    def test_media_artifact_paths_are_deployable(self) -> None:
+        manifest = load_manifest_for_video("01-lateral-raise.mp4")
+        artifacts = _media_artifacts(
+            manifest,
+            [{
+                "candidateId": "action_lateral_raise_correct_01",
+                "kind": "CORRECT_DEMO",
+                "filePath": r"D:\coding_project\GoFit\storage\curated-clips\legacy.mp4",
+            }],
+        )
+        self.assertEqual(
+            artifacts[0]["filePath"],
+            "storage/curated-clips/01-lateral-raise/correct/01-lateral-raise--correct-01.mp4",
+        )
+        self.assertEqual(
+            artifacts[0]["mediaUrl"],
+            "/api/v1/media/curated/01-lateral-raise/correct/01-lateral-raise--correct-01.mp4",
+        )
 
 
 if __name__ == "__main__":

@@ -1873,6 +1873,16 @@ p {
   white-space: nowrap;
 }
 
+.cue-text {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  min-width: 0;
+  text-align: center;
+  text-wrap: balance;
+}
+
 .cue-stage {
   display: inline-flex;
   align-items: center;

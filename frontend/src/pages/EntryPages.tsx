@@ -94,7 +94,6 @@ export function ImportPage() {
         setApiMessage(imported.message);
         if (imported.status === "COMPLETED" && imported.cardId) {
           setResultCardId(imported.cardId);
-          setStep(processingSteps.length - 1);
           setApiMessage("动作卡已生成");
           return;
         }
@@ -323,7 +322,7 @@ export function LibraryPage() {
           <input className="search-input" style={{ paddingLeft: 43 }} value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜索动作、肌群或器械" />
         </div>
         <Link className="button button--soft button--wide" style={{ marginTop: 10 }} to="/demo-videos">
-          <Sparkles size={18} />粘贴抖音链接
+          <Sparkles size={18} />点击粘贴抖音链接
         </Link>
         <section className="section">
           <div className="section-heading">

@@ -102,8 +102,19 @@ def _media_artifacts(manifest: CuratedManifest, artifacts: list[dict]) -> list[d
         manifest.correct_clip.candidate_id: _curated_media_url(manifest.correct_clip.relative_path),
         **{clip.candidate_id: _curated_media_url(clip.relative_path) for clip in manifest.error_clips},
     }
+    portable_paths = {
+        manifest.correct_clip.candidate_id: f"storage/curated-clips/{manifest.correct_clip.relative_path}",
+        **{
+            clip.candidate_id: f"storage/curated-clips/{clip.relative_path}"
+            for clip in manifest.error_clips
+        },
+    }
     return [
-        {**artifact, "mediaUrl": urls.get(artifact.get("candidateId"))}
+        {
+            **artifact,
+            "filePath": portable_paths.get(artifact.get("candidateId")),
+            "mediaUrl": urls.get(artifact.get("candidateId")),
+        }
         for artifact in artifacts
     ]
 
@@ -151,6 +162,18 @@ async def _ai_job_payload(
 def _timestamp(milliseconds: int) -> str:
     seconds = max(0, int(milliseconds) // 1000)
     return f"{seconds // 60:02d}:{seconds % 60:02d}"
+
+
+def _timestamp_ms(value: object, fallback: int) -> int:
+    if not isinstance(value, str):
+        return fallback
+    parts = value.strip().split(":")
+    try:
+        if len(parts) == 2:
+            return (int(parts[0]) * 60 + int(parts[1])) * 1000
+    except ValueError:
+        pass
+    return fallback
 
 
 async def _persist_ai_result(
@@ -275,14 +298,26 @@ async def _persist_mock_fallback(
             "errorDemo": media,
             "evidenceIds": media["evidenceIds"],
         })
+    selected_steps = raw_steps[:5]
+    starts = []
+    for index, raw in enumerate(selected_steps):
+        label = raw[1] if isinstance(raw, list) and len(raw) > 1 else None
+        fallback_start = manifest.correct_clip.source_start_ms + index * 1000
+        start_ms = _timestamp_ms(label, fallback_start)
+        if starts and start_ms <= starts[-1]:
+            start_ms = starts[-1] + 1000
+        starts.append(start_ms)
+
     steps = []
-    for index, raw in enumerate(raw_steps[:5], start=1):
+    for index, raw in enumerate(selected_steps, start=1):
         instruction = raw[0] if isinstance(raw, list) and raw else str(raw)
+        start_ms = starts[index - 1]
+        end_ms = starts[index] if index < len(starts) else start_ms + 4000
         steps.append({
             "order": index,
             "instruction": instruction,
-            "startMs": manifest.correct_clip.source_start_ms,
-            "endMs": manifest.correct_clip.source_end_ms,
+            "startMs": start_ms,
+            "endMs": end_ms,
             "evidenceIds": fallback_evidence,
         })
     while len(steps) < 3:
@@ -368,6 +403,22 @@ async def import_video(
     video_id = fingerprint_video(manifest)
 
     active_task, reusable_card, task_id, status = await _claim_import(db, manifest, video_id)
+    if active_task is not None:
+        try:
+            async with httpx.AsyncClient(timeout=5, trust_env=False) as client:
+                active_response = await client.get(
+                    f"{settings.ai_center_url}/internal/v1/action-card-jobs/{active_task['id']}"
+                )
+            if active_response.status_code == 404:
+                await db.execute(
+                    "UPDATE processing_tasks SET status = 'FAILED', error_message = ?, updated_at = datetime('now') WHERE id = ?",
+                    ("AI center restarted before this task completed.", active_task["id"]),
+                )
+                await db.commit()
+                active_task, reusable_card, task_id, status = await _claim_import(db, manifest, video_id)
+        except httpx.HTTPError:
+            # Keep the task reusable while the AI center is temporarily unreachable.
+            pass
     if active_task is not None:
         return {
             "video_id": video_id,

@@ -48,6 +48,7 @@ type AppState = {
   completeBuddyTraining: () => void;
   purchaseBuddyItem: (item: ShopItem) => void;
   equipBuddyItem: (item: ShopItem) => void;
+  resetBuddyProgress: () => void;
   resetDemo: () => void;
 };
 
@@ -293,6 +294,7 @@ export const useAppStore = create<AppState>()(
       completeBuddyTraining: () => setState((state) => ({ buddyProgress: completeBuddyProgress(state.buddyProgress) })),
       purchaseBuddyItem: (item) => setState((state) => ({ buddyProgress: purchaseBuddyProgressItem(state.buddyProgress, item) })),
       equipBuddyItem: (item) => setState((state) => ({ buddyProgress: equipBuddyProgressItem(state.buddyProgress, item) })),
+      resetBuddyProgress: () => setState({ buddyProgress: DEFAULT_BUDDY_PROGRESS }),
       resetDemo: () => setState({
         plans: initialPlans,
         sessions: [],
@@ -304,7 +306,12 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: "gofit-demo-v1",
+      version: 2,
       storage: createJSONStorage(() => idbStorage),
+      migrate: (persistedState, version) => {
+        const state = persistedState as AppState;
+        return version < 2 ? { ...state, buddyProgress: DEFAULT_BUDDY_PROGRESS } : state;
+      },
       partialize: (state) => ({
         plans: state.plans,
         sessions: state.sessions,

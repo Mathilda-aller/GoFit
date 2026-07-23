@@ -256,7 +256,7 @@ export function ExperiencePage() {
   const markHelpful = useAppStore((state) => state.markHelpful);
   const { data: experience } = useExperiences(exerciseId, currentVideoId, fromTraining);
   const { data: availableCards = [] } = useActionCards();
-  const demoExperience = getDemoExperience(exerciseId);
+  const demoExperience = getDemoExperience(exerciseId, currentVideoId);
   const groups = experience?.frontendGroups ?? demoExperience.groups;
   const [expanded, setExpanded] = useState<string | null | undefined>(undefined);
   const effectiveExpanded = expanded === undefined ? groups[0]?.id : expanded;

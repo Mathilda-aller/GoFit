@@ -35,7 +35,25 @@ export interface TrainingRecord {
 export type AsyncCallback<T = void> = () => T | Promise<T>
 export type ItemCallback<T = void> = (item: ShopItem) => T | Promise<T>
 
-export interface LianguoFitnessProps {
+interface CommonFitnessProps {
+  shopItems?: ShopItem[]
+  xpPerTraining?: number
+  onClose?: AsyncCallback
+  loading?: boolean
+  disabled?: boolean
+  errorMessage?: string
+  className?: string
+}
+
+/** 默认的纯前端模式。所有业务状态仅保存在当前组件实例的内存中。 */
+export interface InternalLianguoFitnessProps extends CommonFitnessProps {
+  stateMode?: 'internal'
+  user?: LianguoUser
+}
+
+/** 由宿主提供全部业务状态的高级模式，适合 API/Bridge 接入。 */
+export interface ControlledLianguoFitnessProps extends CommonFitnessProps {
+  stateMode: 'controlled'
   user: LianguoUser
   totalTrainingCount: number
   totalTrainingXp: number
@@ -44,17 +62,15 @@ export interface LianguoFitnessProps {
   ownedItemIds: string[]
   equippedOutfit: EquippedOutfit
   recentTrainings: TrainingRecord[]
-  shopItems?: ShopItem[]
-  xpPerTraining?: number
+  /** 提交期间立即展示本次成长；默认 true。宿主仍须回传最新业务状态。 */
+  optimistic?: boolean
   onCompleteTraining: AsyncCallback
   onPurchaseItem: ItemCallback
   onEquipItem: ItemCallback
-  onClose?: AsyncCallback
-  loading?: boolean
-  disabled?: boolean
-  errorMessage?: string
-  className?: string
+  onRestart?: AsyncCallback
 }
+
+export type LianguoFitnessProps = InternalLianguoFitnessProps | ControlledLianguoFitnessProps
 
 export interface AvatarOutfit {
   clothingStyle: ClothingStyle

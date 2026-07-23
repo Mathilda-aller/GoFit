@@ -6,12 +6,15 @@ interface AvatarHairProps {
   hatStyle: HatStyle
   hatColor: string
   layer: 'back' | 'front'
+  growth?: number
 }
 
 const outline = '#202a3a'
 
-export function AvatarHair({ style, color, hatStyle, hatColor, layer }: AvatarHairProps) {
+export function AvatarHair({ style, color, hatStyle, hatColor, layer, growth = 0 }: AvatarHairProps) {
   const common = { fill: color, stroke: outline, strokeWidth: 5, strokeLinejoin: 'round' as const }
+  const scale = 1 + Math.min(1, Math.max(0, growth)) * 0.045
+  const transform = `translate(160 92) scale(${scale}) translate(-160 -92)`
   const back = style === 'ponytail' ? (
     <path {...common} d="M202 46c27-19 54 2 42 26 22 28 7 60-26 83 15-39-3-68-25-94z" />
   ) : style === 'big-waves' ? (
@@ -31,13 +34,13 @@ export function AvatarHair({ style, color, hatStyle, hatColor, layer }: AvatarHa
     front = <path {...common} d="M113 88c-3-51 17-70 49-70 36 0 54 24 45 71l-15 14-4-34c-17 17-42 7-55-2l-5 36z" />
   }
 
-  if (layer === 'back') return <>{back}</>
+  if (layer === 'back') return <g transform={transform}>{back}</g>
 
-  return <>
+  return <g transform={transform}>
     {hatStyle === 'none' && front}
     {hatStyle === 'cap' && <>
       <path d="M111 66c7-37 25-51 49-51s42 14 49 51c-30-13-68-13-98 0z" fill={hatColor} stroke={outline} strokeWidth="5" />
       <path d="M108 65c31-13 70-12 103 1l29 10c-20 12-52 4-72-1-22-6-41-3-60 1z" fill={hatColor} stroke={outline} strokeWidth="5" strokeLinejoin="round" />
     </>}
-  </>
+  </g>
 }
