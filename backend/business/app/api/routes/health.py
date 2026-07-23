@@ -11,7 +11,7 @@ router = APIRouter(tags=["system"])
 async def health() -> dict[str, str]:
     ai_center = "not_connected"
     try:
-        async with httpx.AsyncClient(timeout=1.5) as client:
+        async with httpx.AsyncClient(timeout=1.5, trust_env=False) as client:
             response = await client.get(f"{settings.ai_center_url}/internal/v1/health")
             if response.is_success:
                 ai_center = "connected"

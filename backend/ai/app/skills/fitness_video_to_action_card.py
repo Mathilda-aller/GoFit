@@ -112,7 +112,8 @@ class FitnessVideoToActionCardSkill:
             )
 
         media_by_id = {item.candidate_id: item for item in request.media_candidates}
-        for selected in self._selected_media(result):
+        selected_media = list(self._selected_media(result))
+        for selected in selected_media:
             source = media_by_id.get(selected.candidate_id)
             if source is None:
                 self._invalid_output(request, "输出选择了不存在的媒体候选区间。")
@@ -123,6 +124,15 @@ class FitnessVideoToActionCardSkill:
                 or set(selected.evidence_ids) != set(source.evidence_ids)
             ):
                 self._invalid_output(request, "媒体选择与输入候选区间不一致。")
+
+        expected_correct = [item.candidate_id for item in request.media_candidates if item.kind == MediaKind.CORRECT_DEMO]
+        expected_errors = [item.candidate_id for item in request.media_candidates if item.kind == MediaKind.ERROR_DEMO]
+        selected_errors = [item.candidate_id for item in selected_media if item.kind == MediaKind.ERROR_DEMO]
+        if request.media_candidates:
+            if len(expected_correct) != 1 or correct_demo is None or correct_demo.candidate_id != expected_correct[0]:
+                self._invalid_output(request, "动作卡必须使用业务指定的唯一正确示范。")
+            if sorted(selected_errors) != sorted(expected_errors) or len(selected_errors) != len(set(selected_errors)):
+                self._invalid_output(request, "每条人工错误示范都必须且只能对应一条错误文案。")
 
         for common_error in card.learning_side.common_errors:
             if common_error.error_demo.kind != MediaKind.ERROR_DEMO:

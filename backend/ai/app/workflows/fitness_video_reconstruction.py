@@ -144,14 +144,31 @@ class FitnessVideoReconstructionWorkflow:
         )
 
         progress(WorkflowStage.LOCATING_CLIPS, 65, "正在定位关键片段")
-        safe_request_id = re.sub(r"[^a-zA-Z0-9_-]", "_", request.request_id)
-        artifact_dir = self.media_output_dir / safe_request_id
-        artifacts = self.media_processor.render_candidates(
-            video_path,
-            action_card_request.media_candidates,
-            artifact_dir,
-            request_id=request.request_id,
-        )
+        if request.curated_media is not None:
+            curated_clips = [request.curated_media.correct_clip, *request.curated_media.error_clips]
+            missing = [item.file_path for item in curated_clips if not Path(item.file_path).expanduser().resolve().is_file()]
+            if missing:
+                raise SkillError("CURATED_MEDIA_NOT_FOUND", "找不到人工确认的示范片段。", request_id=request.request_id)
+            kinds = [MediaKind.CORRECT_DEMO, *([MediaKind.ERROR_DEMO] * len(request.curated_media.error_clips))]
+            artifacts = [
+                MediaArtifact(
+                    candidateId=clip.candidate_id,
+                    kind=kind,
+                    filePath=str(Path(clip.file_path).expanduser().resolve()),
+                    startMs=clip.source_start_ms,
+                    endMs=clip.source_end_ms,
+                )
+                for clip, kind in zip(curated_clips, kinds, strict=True)
+            ]
+        else:
+            safe_request_id = re.sub(r"[^a-zA-Z0-9_-]", "_", request.request_id)
+            artifact_dir = self.media_output_dir / safe_request_id
+            artifacts = self.media_processor.render_candidates(
+                video_path,
+                action_card_request.media_candidates,
+                artifact_dir,
+                request_id=request.request_id,
+            )
 
         progress(WorkflowStage.BUILDING_CARD, 85, "正在整理动作要点")
         action_card_result = self.action_card_skill.execute(action_card_request)
@@ -262,7 +279,7 @@ class FitnessVideoReconstructionWorkflow:
 
         candidates: list[MediaCandidate] = []
         used_candidate_ids: set[str] = set()
-        for proposal in analysis.media_proposals:
+        for proposal in ([] if request.curated_media is not None else analysis.media_proposals):
             if proposal.end_ms <= proposal.start_ms or proposal.end_ms > duration_ms:
                 raise SkillError(
                     "VIDEO_ANALYSIS_INVALID",
@@ -305,6 +322,39 @@ class FitnessVideoReconstructionWorkflow:
                     evidenceIds=list(dict.fromkeys(evidence_ids)),
                 )
             )
+
+        if request.curated_media is not None:
+            curated = [
+                (request.curated_media.correct_clip, MediaKind.CORRECT_DEMO),
+                *((item, MediaKind.ERROR_DEMO) for item in request.curated_media.error_clips),
+            ]
+            for clip, kind in curated:
+                if clip.source_end_ms > duration_ms:
+                    raise SkillError(
+                        "CURATED_MEDIA_RANGE_INVALID",
+                        "人工示范片段超出了原视频时间范围。",
+                        request_id=request.request_id,
+                    )
+                overlapping = [
+                    item.evidence_id
+                    for item in evidence
+                    if item.start_ms < clip.source_end_ms and item.end_ms > clip.source_start_ms
+                ]
+                if not overlapping:
+                    raise SkillError(
+                        "CURATED_MEDIA_WITHOUT_EVIDENCE",
+                        "人工示范片段没有对应的原视频证据。",
+                        request_id=request.request_id,
+                    )
+                candidates.append(
+                    MediaCandidate(
+                        candidateId=clip.candidate_id,
+                        kind=kind,
+                        startMs=clip.source_start_ms,
+                        endMs=clip.source_end_ms,
+                        evidenceIds=list(dict.fromkeys(overlapping)),
+                    )
+                )
 
         if not any(item.kind == MediaKind.CORRECT_DEMO for item in candidates):
             raise SkillError(

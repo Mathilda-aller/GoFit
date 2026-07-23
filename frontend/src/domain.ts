@@ -6,6 +6,7 @@ export const evidenceMediaSchema = z.object({
   startMs: z.number(),
   endMs: z.number(),
   evidenceIds: z.array(z.string()),
+  mediaUrl: z.string().optional(),
 });
 
 const sourcedTextSchema = z.object({
@@ -67,6 +68,9 @@ export const actionCardResponseSchema = z.object({
     name: z.string(),
     version: z.string(),
   }),
+  contentSource: z.enum(["AI", "MOCK_FALLBACK", "SEED_DEMO"]).optional(),
+  fallbackReason: z.string().optional(),
+  sourceMediaUrl: z.string().optional(),
 });
 
 export type ActionCardResponse = z.infer<typeof actionCardResponseSchema>;

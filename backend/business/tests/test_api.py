@@ -1,16 +1,49 @@
 from __future__ import annotations
 
 import os
+import json
+import sqlite3
 from pathlib import Path
 import tempfile
 import unittest
 
 
 _temp_dir = tempfile.TemporaryDirectory()
-os.environ["GOFIT_DATABASE_URL"] = f"sqlite:///{Path(_temp_dir.name) / 'business-test.db'}"
+_db_path = Path(_temp_dir.name) / "business-test.db"
+os.environ["GOFIT_DATABASE_URL"] = f"sqlite:///{_db_path}"
 os.environ["GOFIT_STORAGE_DIR"] = str(Path(_temp_dir.name) / "storage")
+os.environ["GOFIT_AI_CENTER_URL"] = "http://127.0.0.1:1"
 (Path(_temp_dir.name) / "storage" / "videos").mkdir(parents=True)
 (Path(_temp_dir.name) / "storage" / "videos" / "01-lateral-raise.mp4").write_bytes(b"demo-video")
+clip_root = Path(_temp_dir.name) / "storage" / "curated-clips" / "01-lateral-raise"
+(clip_root / "correct").mkdir(parents=True)
+(clip_root / "error").mkdir(parents=True)
+(clip_root / "correct" / "01-lateral-raise--correct-01.mp4").write_bytes(b"correct")
+(clip_root / "error" / "01-lateral-raise--error-01.mp4").write_bytes(b"error")
+(clip_root / "manifest.json").write_text(json.dumps({
+    "schemaVersion": "1.0.0",
+    "standardActionId": "action_lateral_raise",
+    "actionName": "哑铃侧平举",
+    "sourceVideo": {
+        "videoId": "video_lateral_raise_demo",
+        "file": "storage/videos/01-lateral-raise.mp4",
+        "title": "侧平举教学",
+        "creatorName": "测试教练",
+        "sourceUrl": "https://example.test/lateral-raise",
+    },
+    "correctClips": [{
+        "candidateId": "action_lateral_raise_correct_01",
+        "file": "storage/curated-clips/01-lateral-raise/correct/01-lateral-raise--correct-01.mp4",
+        "sourceStartMs": 1000,
+        "sourceEndMs": 4000,
+    }],
+    "errorClips": [{
+        "candidateId": "action_lateral_raise_error_01",
+        "file": "storage/curated-clips/01-lateral-raise/error/01-lateral-raise--error-01.mp4",
+        "sourceStartMs": 5000,
+        "sourceEndMs": 7000,
+    }],
+}), encoding="utf-8")
 
 from fastapi.testclient import TestClient  # noqa: E402
 
@@ -23,7 +56,8 @@ class BusinessApiFlowTest(unittest.TestCase):
             health = client.get("/api/v1/health")
             self.assertEqual(health.status_code, 200)
 
-            cards = client.get("/api/v1/action-cards").json()["items"]
+            self.assertEqual(client.get("/api/v1/action-cards").json()["items"], [])
+            cards = client.get("/api/v1/action-cards", params={"includeDemo": "true"}).json()["items"]
             self.assertEqual(len(cards), 10)
             self.assertEqual({card["bodyRegion"] for card in cards}, {"肩部", "背部"})
             for card in cards:
@@ -36,10 +70,40 @@ class BusinessApiFlowTest(unittest.TestCase):
 
             imported = client.post(
                 "/api/v1/videos/import",
-                json={"videoId": "video_lateral_raise"},
+                json={"videoId": "video_lateral_raise_demo", "assetFileName": "01-lateral-raise.mp4"},
             ).json()
             self.assertEqual(imported["status"], "COMPLETED")
-            self.assertEqual(imported["cardId"], "video_lateral_raise_demo")
+            self.assertTrue(imported["videoId"].startswith("video_"))
+            self.assertNotEqual(imported["videoId"], "video_lateral_raise")
+            self.assertTrue(imported["cardId"].startswith("mock-video_"))
+            self.assertEqual(imported["contentSource"], "MOCK_FALLBACK")
+
+            generated = client.get(f"/api/v1/action-cards/{imported['cardId']}").json()
+            self.assertEqual(generated["cardData"]["contentSource"], "MOCK_FALLBACK")
+            self.assertIn("/media/curated/", generated["cardData"]["curatedMedia"]["correctDemo"]["mediaUrl"])
+
+            ai_data = dict(generated["cardData"])
+            ai_data["contentSource"] = "AI"
+            db = sqlite3.connect(_db_path)
+            try:
+                db.execute(
+                    """
+                    INSERT INTO video_action_cards
+                    (id, video_id, exercise_id, action_name, body_region, primary_muscles,
+                     secondary_muscles, equipment, card_data, status)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'READY')
+                    """,
+                    ("ai-preferred", imported["videoId"], "exercise_lateral_raise", "哑铃侧平举", "肩部", '["三角肌中束"]', '["三角肌前束"]', '["哑铃"]', json.dumps(ai_data, ensure_ascii=False)),
+                )
+                db.commit()
+            finally:
+                db.close()
+            repeated = client.post(
+                "/api/v1/videos/import",
+                json={"videoId": "seed-id-is-ignored", "assetFileName": "01-lateral-raise.mp4"},
+            ).json()
+            self.assertEqual(repeated["cardId"], "ai-preferred")
+            self.assertEqual(repeated["contentSource"], "AI")
 
             media = client.get("/api/v1/media/videos/01-lateral-raise.mp4")
             self.assertEqual(media.status_code, 200)

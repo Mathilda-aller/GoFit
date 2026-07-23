@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Navigate, Route, Routes } from "react-router";
+import { LianguoBuddyPage } from "./features/lianguo/LianguoBuddyPage";
 import {
   CardPage,
   DemoVideoListPage,
@@ -24,7 +25,6 @@ export default function App() {
   }, [hydrateFromBackend]);
   return (
     <>
-      <BackendConnectionBadge />
       <Routes>
         <Route path="/" element={<Navigate to="/demo/douyin/video_lateral_raise_demo" replace />} />
         <Route path="/demo/douyin/:videoId" element={<DouyinPage />} />
@@ -40,26 +40,9 @@ export default function App() {
         <Route path="/experience/:exerciseId" element={<ExperiencePage />} />
         <Route path="/safety" element={<SafetyPage />} />
         <Route path="/me" element={<MePage />} />
+        <Route path="/me/buddy" element={<LianguoBuddyPage />} />
         <Route path="*" element={<Navigate to="/plans" replace />} />
       </Routes>
     </>
-  );
-}
-
-function BackendConnectionBadge() {
-  const status = useAppStore((state) => state.backendStatus);
-  const error = useAppStore((state) => state.backendError);
-  const hydrate = useAppStore((state) => state.hydrateFromBackend);
-  const label = status === "online" ? "业务后端已连接" : status === "checking" ? "正在连接业务后端" : "本地模式 · 点击重试";
-  return (
-    <button
-      className={`backend-status backend-status--${status}`}
-      type="button"
-      title={error}
-      disabled={status === "checking"}
-      onClick={() => void hydrate()}
-    >
-      <span aria-hidden="true" />{label}
-    </button>
   );
 }

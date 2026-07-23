@@ -48,6 +48,7 @@ function actionCardFromCatalog(item: DemoCatalogItem, index: number): ActionCard
     startMs: demoStartMs,
     endMs: demoEndMs,
     evidenceIds: demoEvidenceIds,
+    mediaUrl: demoVideoUrl,
   };
   const errorStartMs = demoEndMs + 1000;
   const catalogErrors = [
@@ -94,6 +95,7 @@ function actionCardFromCatalog(item: DemoCatalogItem, index: number): ActionCard
               startMs,
               endMs: startMs + 5000,
               evidenceIds,
+              mediaUrl: demoVideoUrl,
             },
             evidenceIds,
           };

@@ -25,16 +25,17 @@ export function MePage() {
         <PageHeader title="我的" action={<button className="icon-button" aria-label="设置"><Settings2 size={20} /></button>} />
         <p className="eyebrow">真实完成，比完美记录更重要</p>
         <h1>我的</h1>
-        <section className="section hero-panel">
+        <Link className="section hero-panel buddy-entry" to="/me/buddy" aria-label="打开搭子小练">
           <div style={{ display: "grid", gridTemplateColumns: "1fr 118px", alignItems: "center", gap: 8 }}>
             <div>
               <span className="chip chip--accent">我的健身搭子</span>
               <h2 style={{ marginTop: 12 }}>小练</h2>
               <p>{latestRegion ? `最近记住了你的${latestRegion}记录。` : "完成第一次训练后，我会记住你练过的部位。"}</p>
+              <span className="buddy-entry__cta">进入搭子小练 <ChevronRight size={16} /></span>
             </div>
             <div className="buddy-orbit" style={{ width: 112, height: 112, margin: 0 }}><Buddy highlighted={Boolean(latest)} /></div>
           </div>
-        </section>
+        </Link>
 
         <section className="section">
           <div className="section-heading"><h2>我的记录</h2></div>

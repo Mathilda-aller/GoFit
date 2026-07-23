@@ -291,6 +291,33 @@ def test_workflow_rejects_video_without_correct_demo(tmp_path: Path) -> None:
     assert caught.value.code == "NO_CORRECT_DEMO_CANDIDATE"
 
 
+def test_curated_media_replaces_visual_media_proposals(tmp_path: Path) -> None:
+    video_path = tmp_path / "video.mp4"
+    clip_path = tmp_path / "correct.mp4"
+    video_path.write_bytes(b"fake video")
+    clip_path.write_bytes(b"human curated clip")
+    payload = make_request(video_path).model_dump(by_alias=True, mode="json")
+    payload["curatedMedia"] = {
+        "correctClip": {
+            "candidateId": "human_correct_01",
+            "filePath": str(clip_path),
+            "sourceStartMs": 1000,
+            "sourceEndMs": 4000,
+        },
+        "errorClips": [],
+    }
+
+    result = make_workflow(tmp_path, include_demo=False).execute(
+        VideoWorkflowRequest.model_validate(payload)
+    )
+
+    selected = result.action_card_result.action_card.learning_side.correct_demo
+    assert selected is not None
+    assert selected.candidate_id == "human_correct_01"
+    assert result.action_card_result.action_card.training_side.loop_demo == selected
+    assert result.media_artifacts[0].file_path == str(clip_path.resolve())
+
+
 def test_ffmpeg_missing_has_clear_error(tmp_path: Path) -> None:
     processor = FFmpegMediaProcessor(
         "definitely-missing-ffmpeg",

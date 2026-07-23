@@ -80,6 +80,8 @@ async def get_action_card(
 async def list_action_cards(
     db: aiosqlite.Connection,
     user_id: str = DEMO_USER_ID,
+    *,
+    include_demo: bool = False,
 ) -> list[dict[str, Any]]:
     rows = await fetch_all(
         db,
@@ -94,7 +96,14 @@ async def list_action_cards(
         FROM video_action_cards c
         JOIN source_videos v ON v.id = c.video_id
         LEFT JOIN user_saved_cards s ON s.card_id = c.id AND s.user_id = ?
-        WHERE NOT (
+        WHERE (
+            ? = 1 OR
+            COALESCE(
+                json_extract(c.card_data, '$.contentSource'),
+                CASE WHEN c.id LIKE 'ai-%' THEN 'AI' WHEN c.id LIKE 'mock-%' THEN 'MOCK_FALLBACK' ELSE 'SEED_DEMO' END
+            ) != 'SEED_DEMO'
+        )
+        AND NOT (
             c.id IN ('lateral-raise', 'front-raise', 'reverse-fly', 'lat-pulldown')
             AND EXISTS (
                 SELECT 1 FROM video_action_cards replacement
@@ -104,7 +113,7 @@ async def list_action_cards(
         )
         ORDER BY c.created_at ASC
         """,
-        (user_id,),
+        (user_id, int(include_demo)),
     )
     return [await enrich_card(db, row) for row in rows]
 
@@ -149,7 +158,20 @@ async def enrich_card(db: aiosqlite.Connection, row: dict[str, Any]) -> dict[str
 async def get_card_by_video(db: aiosqlite.Connection, video_id: str) -> dict[str, Any] | None:
     row = await fetch_one(
         db,
-        "SELECT id FROM video_action_cards WHERE video_id = ? ORDER BY created_at LIMIT 1",
+        """
+        SELECT id FROM video_action_cards
+        WHERE video_id = ?
+        ORDER BY
+          CASE json_extract(card_data, '$.contentSource')
+            WHEN 'AI' THEN 0
+            WHEN 'MOCK_FALLBACK' THEN 2
+            WHEN 'SEED_DEMO' THEN 3
+            ELSE CASE WHEN id LIKE 'ai-%' THEN 1 ELSE 3 END
+          END,
+          created_at DESC,
+          rowid DESC
+        LIMIT 1
+        """,
         (video_id,),
     )
     if row is None:

@@ -22,7 +22,6 @@ import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { Link, NavLink, useNavigate } from "react-router";
 import type { ActionCardResponse, Sensation } from "./domain";
-import { demoVideoUrl } from "./mocks/data";
 import { useAppStore } from "./store";
 
 export function Brand() {
@@ -96,16 +95,18 @@ export function VideoFrame({
   compact = false,
   title = "侧平举新手教学",
   creator = "GoFit Demo Coach",
+  src,
 }: {
   compact?: boolean;
   title?: string;
   creator?: string;
+  src?: string;
 }) {
   const [portrait, setPortrait] = useState(true);
   return (
     <div className={`video-frame ${compact ? "video-frame--compact" : ""} ${portrait ? "video-frame--portrait" : ""}`}>
       <video
-        src={demoVideoUrl}
+        src={src}
         muted
         playsInline
         loop
@@ -148,6 +149,7 @@ function TimeRange({ startMs, endMs }: { startMs: number; endMs: number }) {
 type ClipRange = {
   startMs: number;
   endMs: number;
+  mediaUrl?: string;
 };
 
 function LoopingClip({
@@ -161,8 +163,9 @@ function LoopingClip({
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [portrait, setPortrait] = useState(true);
-  const startSeconds = clip.startMs / 1000;
-  const endSeconds = clip.endMs / 1000;
+  const isCuratedFile = Boolean(clip.mediaUrl);
+  const startSeconds = isCuratedFile ? 0 : clip.startMs / 1000;
+  const endSeconds = isCuratedFile ? Number.POSITIVE_INFINITY : clip.endMs / 1000;
 
   useEffect(() => {
     const video = videoRef.current;
@@ -181,10 +184,11 @@ function LoopingClip({
     <figure className={`looping-clip ${portrait ? "looping-clip--portrait" : ""}`}>
       <video
         ref={videoRef}
-        src={demoVideoUrl}
+        src={clip.mediaUrl}
         muted
         playsInline
         autoPlay
+        loop={isCuratedFile}
         preload="metadata"
         aria-label={label}
         onTimeUpdate={(event) => {
@@ -356,7 +360,7 @@ export function ActionCardContent({
               <div><strong>错误片段</strong><p>从原视频定位到 {card.learningSide.commonErrors.length} 段</p></div>
               {card.learningSide.commonErrors.length > 1 ? <span>左右滑动查看</span> : null}
             </div>
-            <div className="error-clip-track" aria-label={`错误片段，共 ${card.learningSide.commonErrors.length} 段`}>
+            {card.learningSide.commonErrors.length ? <div className="error-clip-track" aria-label={`错误片段，共 ${card.learningSide.commonErrors.length} 段`}>
               {card.learningSide.commonErrors.map((error, index) => (
                 <LoopingClip
                   key={error.errorDemo.candidateId}
@@ -365,7 +369,7 @@ export function ActionCardContent({
                   caption={`错误示范 ${String(index + 1).padStart(2, "0")}`}
                 />
               ))}
-            </div>
+            </div> : <p className="muted">本视频未提供人工确认的错误示范。</p>}
 
             <div className="error-findings">
               <div className="error-findings__heading">
@@ -455,8 +459,8 @@ export function Buddy({ highlighted = true }: { highlighted?: boolean }) {
     <svg viewBox="0 0 100 130" role="img" aria-label={highlighted ? "肩部已记录的健身搭子" : "健身搭子"}>
       <circle cx="50" cy="20" r="14" fill="var(--ink)" />
       <path d="M36 40 Q50 33 64 40 L69 82 Q62 92 50 92 Q38 92 31 82Z" fill="var(--body-surface)" />
-      <path d="M36 43 Q23 48 18 67 L28 71 Q33 58 42 56Z" fill={highlighted ? "var(--accent)" : "var(--body-surface)"} />
-      <path d="M64 43 Q77 48 82 67 L72 71 Q67 58 58 56Z" fill={highlighted ? "var(--accent)" : "var(--body-surface)"} />
+      <path className="buddy__arm buddy__arm--left" d="M36 43 Q23 48 18 67 L28 71 Q33 58 42 56Z" fill={highlighted ? "var(--accent)" : "var(--body-surface)"} />
+      <path className="buddy__arm buddy__arm--right" d="M64 43 Q77 48 82 67 L72 71 Q67 58 58 56Z" fill={highlighted ? "var(--accent)" : "var(--body-surface)"} />
       <path d="M37 87 L47 87 L44 124 L32 124Z" fill="var(--ink)" />
       <path d="M63 87 L53 87 L56 124 L68 124Z" fill="var(--ink)" />
     </svg>

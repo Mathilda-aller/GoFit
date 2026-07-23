@@ -231,7 +231,37 @@ async def seed_data(db: aiosqlite.Connection) -> None:
         },
     ]
 
+    demo_media = {
+        "video_lateral_raise_demo": ("01-lateral-raise", "action_lateral_raise"),
+        "video_shoulder_press_demo": ("02-shoulder-press", "action_shoulder_press"),
+        "video_reverse_fly_demo": ("03-reverse-fly", "action_reverse_fly"),
+        "video_front_raise_demo": ("04-front-raise", "action_front_raise"),
+        "video_face_pull_demo": ("05-face-pull", "action_face_pull"),
+        "video_lat_pulldown_demo": ("06-lat-pulldown", "action_lat_pulldown"),
+        "video_seated_row_demo": ("07-seated-cable-row", "action_seated_cable_row"),
+        "video_one_arm_row_demo": ("08-one-arm-dumbbell-row", "action_one_arm_dumbbell_row"),
+        "video_chest_supported_row_demo": ("09-chest-supported-row", "action_chest_supported_row"),
+        "video_straight_arm_pulldown_demo": ("10-straight-arm-pulldown", "action_straight_arm_pulldown"),
+    }
+
     for card in cards_data:
+        slug, action_id = demo_media[card["id"]]
+        correct_file = f"{slug}--correct-01.mp4"
+        error_file = f"{slug}--error-01.mp4"
+        card["card_data"].update({
+            "contentSource": "SEED_DEMO",
+            "sourceMediaUrl": f"/api/v1/media/videos/{slug}.mp4",
+            "curatedMedia": {
+                "correctDemo": {
+                    "candidateId": f"{action_id}_correct_01",
+                    "mediaUrl": f"/api/v1/media/curated/{slug}/correct/{correct_file}",
+                },
+                "errorDemos": [] if slug == "09-chest-supported-row" else [{
+                    "candidateId": f"{action_id}_error_01",
+                    "mediaUrl": f"/api/v1/media/curated/{slug}/error/{error_file}",
+                }],
+            },
+        })
         await db.execute(
             "INSERT OR IGNORE INTO video_action_cards "
             "(id, video_id, exercise_id, action_name, body_region, "
@@ -247,6 +277,48 @@ async def seed_data(db: aiosqlite.Connection) -> None:
                 json.dumps(card["secondary_muscles"]),
                 json.dumps(card["equipment"]),
                 json.dumps(card["card_data"], ensure_ascii=False),
+            ),
+        )
+        await db.execute(
+            """
+            UPDATE video_action_cards
+            SET card_data = json_set(
+                card_data,
+                '$.contentSource', json_extract(?, '$.contentSource'),
+                '$.sourceMediaUrl', json_extract(?, '$.sourceMediaUrl'),
+                '$.curatedMedia', json_extract(?, '$.curatedMedia')
+            )
+            WHERE id = ? AND json_extract(card_data, '$.aiResult') IS NULL
+            """,
+            (
+                json.dumps(card["card_data"], ensure_ascii=False),
+                json.dumps(card["card_data"], ensure_ascii=False),
+                json.dumps(card["card_data"], ensure_ascii=False),
+                card["id"],
+            ),
+        )
+        # Older plans may still reference legacy card ids such as
+        # "front-raise". Keep their text, but attach the same curated source
+        # video and clips so existing training sessions remain playable.
+        await db.execute(
+            """
+            UPDATE video_action_cards
+            SET card_data = json_set(
+                card_data,
+                '$.contentSource', json_extract(?, '$.contentSource'),
+                '$.sourceMediaUrl', json_extract(?, '$.sourceMediaUrl'),
+                '$.curatedMedia', json_extract(?, '$.curatedMedia')
+            )
+            WHERE video_id = ?
+              AND id != ?
+              AND json_extract(card_data, '$.aiResult') IS NULL
+            """,
+            (
+                json.dumps(card["card_data"], ensure_ascii=False),
+                json.dumps(card["card_data"], ensure_ascii=False),
+                json.dumps(card["card_data"], ensure_ascii=False),
+                card["video_id"],
+                card["id"],
             ),
         )
 

@@ -69,6 +69,8 @@ class ImportVideoResult(ApiModel):
     card_id: str | None = None
     message: str
     media_url: str | None = None
+    content_source: str | None = None
+    fallback_reason: str | None = None
 
 
 class ProcessingStatus(ApiModel):
@@ -77,6 +79,8 @@ class ProcessingStatus(ApiModel):
     status: str
     card_id: str | None = None
     error_message: str | None = None
+    content_source: str | None = None
+    fallback_reason: str | None = None
 
 
 class PlanItem(ApiModel):

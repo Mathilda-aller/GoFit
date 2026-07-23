@@ -2,6 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { businessApi, toFrontendActionCard, toFrontendExperienceGroups } from "./business-api";
 import { actionCards, cardIds, getDemoExperience } from "./mocks/data";
 
+const demoFallbackEnabled = import.meta.env.VITE_ENABLE_DEMO_FALLBACK === "true";
+
 const wait = (ms: number) => new Promise((resolve) => window.setTimeout(resolve, ms));
 
 export const mockRepository = {
@@ -23,8 +25,10 @@ export function useActionCard(cardId: string | undefined) {
       try {
         return toFrontendActionCard(await businessApi.getActionCard(id));
       } catch (error) {
-        const fallback = await mockRepository.getActionCard(id);
-        if (fallback) return fallback;
+        if (demoFallbackEnabled) {
+          const fallback = await mockRepository.getActionCard(id);
+          if (fallback) return fallback;
+        }
         throw error;
       }
     },
@@ -40,8 +44,9 @@ export function useActionCards() {
     queryFn: async () => {
       try {
         return (await businessApi.listActionCards()).map(toFrontendActionCard);
-      } catch {
-        return mockRepository.listActionCards();
+      } catch (error) {
+        if (demoFallbackEnabled) return mockRepository.listActionCards();
+        throw error;
       }
     },
     staleTime: 30_000,

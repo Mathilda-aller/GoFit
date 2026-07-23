@@ -157,19 +157,6 @@ type FeedbackResult = {
   nextItemId: string | null;
 };
 
-const demoVideoAliases: Record<string, string> = {
-  video_lateral_raise_demo: "video_lateral_raise",
-  video_front_raise_demo: "video_front_raise",
-  video_reverse_fly_demo: "video_reverse_fly",
-  video_shoulder_press_demo: "video_shoulder_press",
-  video_face_pull_demo: "video_face_pull",
-  video_lat_pulldown_demo: "video_lat_pulldown",
-  video_seated_row_demo: "video_seated_row",
-  video_one_arm_row_demo: "video_one_arm_row",
-  video_chest_supported_row_demo: "video_chest_supported_row",
-  video_straight_arm_pulldown_demo: "video_straight_arm_pulldown",
-};
-
 const standardActionAliases: Record<string, string> = {
   action_lateral_raise: "exercise_lateral_raise",
   action_front_raise: "exercise_front_raise",
@@ -182,10 +169,6 @@ const standardActionAliases: Record<string, string> = {
   action_chest_supported_row: "exercise_chest_supported_row",
   action_straight_arm_pulldown: "exercise_straight_arm_pulldown",
 };
-
-const mockByBusinessVideoId = new Map(
-  Object.entries(demoVideoAliases).map(([mockVideoId, businessVideoId]) => [businessVideoId, mockActionCards[mockVideoId]]),
-);
 
 function apiUrl(path: string) {
   return `${BUSINESS_API_BASE_URL}${path.startsWith("/") ? path : `/${path}`}`;
@@ -231,8 +214,52 @@ function cardSteps(card: BusinessActionCard) {
 }
 
 export function toFrontendActionCard(card: BusinessActionCard): ActionCardResponse {
-  const template = mockByBusinessVideoId.get(card.videoId)
-    ?? Object.values(mockActionCards).find((candidate) => candidate.actionCard.actionName === card.actionName);
+  const aiResult = card.cardData.aiResult;
+  const curated = card.cardData.curatedMedia as {
+    correctDemo?: { candidateId: string; mediaUrl: string };
+    errorDemos?: Array<{ candidateId: string; mediaUrl: string }>;
+  } | undefined;
+  const artifacts = Array.isArray(card.cardData.mediaArtifacts)
+    ? card.cardData.mediaArtifacts as Array<{ candidateId?: string; mediaUrl?: string }>
+    : [];
+  if (aiResult && typeof aiResult === "object") {
+    const parsed = actionCardResponseSchema.parse(aiResult);
+    const mediaByCandidate = new Map<string, string>();
+    if (curated?.correctDemo) mediaByCandidate.set(curated.correctDemo.candidateId, curated.correctDemo.mediaUrl);
+    for (const item of curated?.errorDemos ?? []) mediaByCandidate.set(item.candidateId, item.mediaUrl);
+    for (const item of artifacts) {
+      if (item.candidateId && item.mediaUrl && !mediaByCandidate.has(item.candidateId)) {
+        mediaByCandidate.set(item.candidateId, item.mediaUrl);
+      }
+    }
+    const attachUrl = <T extends { candidateId: string }>(media: T) => ({
+      ...media,
+      mediaUrl: mediaByCandidate.get(media.candidateId),
+    });
+    const contentSource = card.cardData.contentSource === "MOCK_FALLBACK" ? "MOCK_FALLBACK" : "AI";
+    return actionCardResponseSchema.parse({
+      ...parsed,
+      contentSource,
+      fallbackReason: typeof card.cardData.fallbackReason === "string" ? card.cardData.fallbackReason : undefined,
+      sourceMediaUrl: typeof card.cardData.sourceMediaUrl === "string" ? card.cardData.sourceMediaUrl : undefined,
+      actionCard: {
+        ...parsed.actionCard,
+        learningSide: {
+          ...parsed.actionCard.learningSide,
+          correctDemo: attachUrl(parsed.actionCard.learningSide.correctDemo),
+          commonErrors: parsed.actionCard.learningSide.commonErrors.map((error) => ({
+            ...error,
+            errorDemo: attachUrl(error.errorDemo),
+          })),
+        },
+        trainingSide: {
+          ...parsed.actionCard.trainingSide,
+          loopDemo: attachUrl(parsed.actionCard.trainingSide.loopDemo),
+        },
+      },
+    });
+  }
+  const template = mockActionCards[card.id];
   const steps = cardSteps(card);
   const cue = stringValue(card.cardData.cue, `${card.actionName} · 保持控制`);
   const tip = stringValue(card.cardData.tip, "保持动作稳定；如有不适请停止训练。");
@@ -267,10 +294,10 @@ export function toFrontendActionCard(card: BusinessActionCard): ActionCardRespon
   return actionCardResponseSchema.parse({
     ...base,
     requestId: `business-${card.id}`,
-    status: card.status === "READY" ? "READY" : "NEEDS_REVIEW",
+    status: card.status === "READY" ? "READY" : card.status === "FAILED" ? "FAILED" : "NEEDS_REVIEW",
     standardAction: {
       ...base.standardAction,
-      standardActionId: template?.standardAction.standardActionId ?? card.exerciseId,
+      standardActionId: card.exerciseId,
       decision: "BUSINESS_CARD",
     },
     actionCard: {
@@ -288,16 +315,33 @@ export function toFrontendActionCard(card: BusinessActionCard): ActionCardRespon
       equipment: card.equipment,
       learningSide: {
         ...base.actionCard.learningSide,
+        correctDemo: {
+          ...base.actionCard.learningSide.correctDemo,
+          mediaUrl: curated?.correctDemo?.mediaUrl ?? base.actionCard.learningSide.correctDemo.mediaUrl,
+        },
         steps: steps.length ? steps : base.actionCard.learningSide.steps,
         keyReminders: [{ text: tip, evidenceIds: [`business-${card.id}`] }],
+        commonErrors: (curated?.errorDemos ?? []).map((media, index) => {
+          const fallback = base.actionCard.learningSide.commonErrors[index];
+          return fallback ? {
+            ...fallback,
+            errorDemo: { ...fallback.errorDemo, mediaUrl: media.mediaUrl },
+          } : null;
+        }).filter((item): item is NonNullable<typeof item> => item !== null),
       },
       trainingSide: {
         ...base.actionCard.trainingSide,
+        loopDemo: {
+          ...base.actionCard.trainingSide.loopDemo,
+          mediaUrl: curated?.correctDemo?.mediaUrl ?? base.actionCard.trainingSide.loopDemo.mediaUrl,
+        },
         quickCue: { text: cue, evidenceIds: [`business-${card.id}`] },
         quickTips: [{ text: tip, evidenceIds: [`business-${card.id}`] }],
       },
     },
     provider: { name: "gofit-business", version: "0.1.0" },
+    contentSource: "SEED_DEMO",
+    sourceMediaUrl: typeof card.cardData.sourceMediaUrl === "string" ? card.cardData.sourceMediaUrl : undefined,
   });
 }
 
@@ -354,14 +398,10 @@ export function toFrontendExperienceGroups(result: BusinessExperienceResult): Ex
   }));
 }
 
-export function toBusinessVideoId(videoId: string) {
-  return demoVideoAliases[videoId] ?? videoId;
-}
-
 export const businessApi = {
   health: () => request<{ status: string; service: string; ai_center: string }>("/health"),
-  listActionCards: async () => (await request<{ items: BusinessActionCard[] }>("/action-cards")).items,
-  getActionCard: (cardId: string) => request<BusinessActionCard>(`/action-cards/${encodeURIComponent(cardId)}`),
+  listActionCards: async () => (await request<{ items: BusinessActionCard[] }>(`/action-cards${import.meta.env.VITE_ENABLE_DEMO_FALLBACK === "true" ? "?includeDemo=true" : ""}`)).items,
+  getActionCard: (cardId: string) => request<BusinessActionCard>(`/action-cards/${encodeURIComponent(cardId)}${import.meta.env.VITE_ENABLE_DEMO_FALLBACK === "true" ? "?includeDemo=true" : ""}`),
   setCardSaved: (cardId: string, saved: boolean) => request<BusinessActionCard>(`/action-cards/${encodeURIComponent(cardId)}/saved`, { method: saved ? "POST" : "DELETE" }),
   listPlans: () => request<PlanListResponse>("/plans"),
   createPlan: (name?: string, initialCardId?: string) => request<BusinessTrainingPlan>("/plans", {
@@ -395,9 +435,9 @@ export const businessApi = {
     return request<BusinessExperienceResult>(`/experiences?${params}`);
   },
   me: () => request<BusinessMeSummary>("/me"),
-  importVideo: (payload: { videoId: string; title?: string; creatorName?: string; sourceUrl?: string; assetFileName?: string }) => request<{ videoId: string; taskId: string; status: string; cardId: string | null; message: string; mediaUrl: string | null }>("/videos/import", {
+  importVideo: (payload: { videoId: string; title?: string; creatorName?: string; sourceUrl?: string; assetFileName?: string }) => request<{ videoId: string; taskId: string; status: string; cardId: string | null; message: string; mediaUrl: string | null; contentSource: string | null; fallbackReason: string | null }>("/videos/import", {
     method: "POST",
     body: JSON.stringify(payload),
   }),
-  processingStatus: (videoId: string) => request<{ taskId: string; videoId: string; status: string; cardId: string | null; errorMessage: string | null }>(`/videos/${encodeURIComponent(videoId)}/processing`),
+  processingStatus: (videoId: string) => request<{ taskId: string; videoId: string; status: string; cardId: string | null; errorMessage: string | null; contentSource: string | null; fallbackReason: string | null }>(`/videos/${encodeURIComponent(videoId)}/processing`),
 };

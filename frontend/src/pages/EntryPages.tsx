@@ -15,7 +15,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import { useActionCard, useActionCards } from "../api";
-import { businessApi, toBusinessVideoId } from "../business-api";
+import { BUSINESS_API_BASE_URL, businessApi } from "../business-api";
 import {
   ActionCardContent,
   AddToPlanDialog,
@@ -80,11 +80,11 @@ export function ImportPage() {
   }, [step]);
   useEffect(() => {
     let cancelled = false;
-    const businessVideoId = toBusinessVideoId(videoId);
     const run = async () => {
       try {
+        setApiError(null);
         const imported = await businessApi.importVideo({
-          videoId: businessVideoId,
+          videoId,
           title: selectedVideo?.title,
           creatorName: selectedVideo?.creatorName,
           sourceUrl: selectedVideo?.sourceUrl,
@@ -94,24 +94,30 @@ export function ImportPage() {
         setApiMessage(imported.message);
         if (imported.status === "COMPLETED" && imported.cardId) {
           setResultCardId(imported.cardId);
+          setStep(processingSteps.length - 1);
+          setApiMessage("动作卡已生成");
           return;
         }
-        for (let attempt = 0; attempt < 12 && !cancelled; attempt += 1) {
-          await new Promise((resolve) => window.setTimeout(resolve, 800));
-          const processing = await businessApi.processingStatus(businessVideoId);
+        const pollingDeadline = Date.now() + 5 * 60 * 1000;
+        while (Date.now() < pollingDeadline && !cancelled) {
+          await new Promise((resolve) => window.setTimeout(resolve, 1500));
+          if (cancelled) return;
+          const processing = await businessApi.processingStatus(imported.videoId);
           if (processing.status === "COMPLETED" && processing.cardId) {
             setResultCardId(processing.cardId);
-            setApiMessage("业务后端已返回动作卡");
+            setStep(processingSteps.length - 1);
+            setApiError(null);
+            setApiMessage("动作卡已生成");
             return;
           }
           if (processing.status === "FAILED") throw new Error(processing.errorMessage ?? "动作卡生成失败");
+          setApiMessage("AI 中心仍在处理，页面会自动等待结果");
         }
-        if (!cancelled) setApiError("业务任务已创建，仍在等待 AI 中心处理。你可以稍后刷新重试。");
+        if (!cancelled) setApiError("AI 处理超过 5 分钟，请稍后刷新页面重试。");
       } catch (error) {
         if (cancelled) return;
         setApiError(error instanceof Error ? error.message : "业务后端连接失败");
-        setApiMessage("当前使用前端演示数据");
-        setResultCardId(videoId);
+        setApiMessage("导入失败，请检查业务后端或人工素材 manifest");
       }
     };
     void run();
@@ -122,7 +128,7 @@ export function ImportPage() {
     <AppShell navigation={false}>
       <main className="page page--immersive">
         <PageHeader title="正在生成动作卡" back />
-        <VideoFrame compact title={selectedVideo?.title} creator={selectedVideo?.creatorName} />
+        <VideoFrame compact title={selectedVideo?.title} creator={selectedVideo?.creatorName} src={selectedDemoVideo?.assetFileName ? `${BUSINESS_API_BASE_URL}/media/videos/${encodeURIComponent(selectedDemoVideo.assetFileName)}` : undefined} />
         <section className="section">
           <p className="eyebrow">AI 内容重构</p>
           <h1>{done ? "动作卡准备好了" : "把视频变成能练的步骤"}</h1>

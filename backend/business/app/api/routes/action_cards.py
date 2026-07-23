@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import aiosqlite
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from app.db.database import get_db
 from app.repositories import business as repo
@@ -11,17 +11,23 @@ router = APIRouter(tags=["action-cards"])
 
 
 @router.get("/action-cards", response_model=ActionCardList)
-async def list_action_cards(db: aiosqlite.Connection = Depends(get_db)) -> dict:
-    return {"items": await repo.list_action_cards(db)}
+async def list_action_cards(
+    include_demo: bool = Query(default=False, alias="includeDemo"),
+    db: aiosqlite.Connection = Depends(get_db),
+) -> dict:
+    return {"items": await repo.list_action_cards(db, include_demo=include_demo)}
 
 
 @router.get("/action-cards/{card_id}", response_model=ActionCard)
 async def get_action_card(
     card_id: str,
+    include_demo: bool = Query(default=False, alias="includeDemo"),
     db: aiosqlite.Connection = Depends(get_db),
 ) -> dict:
     card = await repo.get_action_card(db, card_id)
-    if card is None:
+    content_source = card["card_data"].get("contentSource") if card else None
+    is_seed = card is not None and (content_source == "SEED_DEMO" or (content_source is None and not card["id"].startswith(("ai-", "mock-"))))
+    if card is None or (is_seed and not include_demo):
         raise HTTPException(status_code=404, detail="Action card not found.")
     return card
 

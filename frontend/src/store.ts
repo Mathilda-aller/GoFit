@@ -2,6 +2,14 @@ import { get, set } from "idb-keyval";
 import { create } from "zustand";
 import { createJSONStorage, persist, type StateStorage } from "zustand/middleware";
 import { businessApi, toFrontendPlan, toFrontendSession } from "./business-api";
+import {
+  completeBuddyProgress,
+  DEFAULT_BUDDY_PROGRESS,
+  equipBuddyItem as equipBuddyProgressItem,
+  purchaseBuddyItem as purchaseBuddyProgressItem,
+  type BuddyProgress,
+} from "./features/lianguo/buddy-progress";
+import type { ShopItem } from "./features/lianguo/kit";
 import type { Plan, Sensation, TrainingSession } from "./domain";
 
 const idbStorage: StateStorage = {
@@ -18,6 +26,7 @@ type AppState = {
   collectedCardIds: string[];
   uninterestedCardIds: string[];
   helpfulExperienceIds: string[];
+  buddyProgress: BuddyProgress;
   backendStatus: BackendStatus;
   backendError?: string;
   hydrateFromBackend: () => Promise<void>;
@@ -36,6 +45,9 @@ type AppState = {
   completeSession: (sessionId: string) => void;
   endSession: (sessionId: string) => Promise<void>;
   markHelpful: (experienceId: string) => void;
+  completeBuddyTraining: () => void;
+  purchaseBuddyItem: (item: ShopItem) => void;
+  equipBuddyItem: (item: ShopItem) => void;
   resetDemo: () => void;
 };
 
@@ -93,6 +105,7 @@ export const useAppStore = create<AppState>()(
       collectedCardIds: ["video_reverse_fly_demo"],
       uninterestedCardIds: [],
       helpfulExperienceIds: [],
+      buddyProgress: DEFAULT_BUDDY_PROGRESS,
       backendStatus: "checking",
       backendError: undefined,
       hydrateFromBackend: async () => {
@@ -277,7 +290,17 @@ export const useAppStore = create<AppState>()(
         }
       },
       markHelpful: (experienceId) => setState((state) => ({ helpfulExperienceIds: [...new Set([...state.helpfulExperienceIds, experienceId])] })),
-      resetDemo: () => setState({ plans: initialPlans, sessions: [], collectedCardIds: ["video_reverse_fly_demo"], uninterestedCardIds: [], helpfulExperienceIds: [] }),
+      completeBuddyTraining: () => setState((state) => ({ buddyProgress: completeBuddyProgress(state.buddyProgress) })),
+      purchaseBuddyItem: (item) => setState((state) => ({ buddyProgress: purchaseBuddyProgressItem(state.buddyProgress, item) })),
+      equipBuddyItem: (item) => setState((state) => ({ buddyProgress: equipBuddyProgressItem(state.buddyProgress, item) })),
+      resetDemo: () => setState({
+        plans: initialPlans,
+        sessions: [],
+        collectedCardIds: ["video_reverse_fly_demo"],
+        uninterestedCardIds: [],
+        helpfulExperienceIds: [],
+        buddyProgress: DEFAULT_BUDDY_PROGRESS,
+      }),
     }),
     {
       name: "gofit-demo-v1",
@@ -288,6 +311,7 @@ export const useAppStore = create<AppState>()(
         collectedCardIds: state.collectedCardIds,
         uninterestedCardIds: state.uninterestedCardIds,
         helpfulExperienceIds: state.helpfulExperienceIds,
+        buddyProgress: state.buddyProgress,
       }),
     },
   ),

@@ -9,6 +9,7 @@ import {
   Dumbbell,
   ExternalLink,
   Heart,
+  LoaderCircle,
   Play,
   ShieldAlert,
   Sparkles,
@@ -65,7 +66,17 @@ export function TrainingPage() {
 
   const item = session?.items[session.currentIndex];
   const { data: response, isPending: isCardPending } = useActionCard(item?.cardId);
-  if (!session || isCardPending) return <MissingSession />;
+  if (!session) return <MissingSession />;
+  if (isCardPending) {
+    return (
+      <AppShell navigation={false}>
+        <main className="page page--immersive">
+          <PageHeader title="正在准备训练" back />
+          <div className="empty-state"><div><LoaderCircle className="spin" size={30} /><h2>正在加载动作示范</h2></div></div>
+        </main>
+      </AppShell>
+    );
+  }
   if (!item || !response) return <MissingSession />;
   const card = response.actionCard;
   const demoExperience = getDemoExperience(response.standardAction.standardActionId);
@@ -377,7 +388,11 @@ export function CompletePage() {
       <main className="page page--immersive">
         <PageHeader title="训练总结" />
         <div className="buddy-feedback">
-          <div className="buddy-orbit"><Buddy highlighted={stopped === 0} /></div>
+          <Link className="complete-buddy-entry" to="/me/buddy" aria-label="进入我的搭子中心">
+            <span className="complete-buddy-entry__prompt">来看看我长大了多少</span>
+            <span className="buddy-orbit"><Buddy highlighted={stopped === 0} /></span>
+            <span className="complete-buddy-entry__label">进入搭子中心 <ChevronRight size={15} /></span>
+          </Link>
           <p className="eyebrow">{session.status === "COMPLETED" ? "本次训练完成" : "本次训练已结束"}</p>
           <h1>今天练过 {completed} 个动作</h1>
           <p className="muted">每一条体感都已保存，下次候选会参考这些记录。</p>

@@ -46,6 +46,18 @@ def demo_lateral_raise_candidates() -> list[StandardActionCandidate]:
     ]
 
 
+class CuratedClip(ContractModel):
+    candidate_id: str = Field(alias="candidateId", min_length=1)
+    file_path: str = Field(alias="filePath", min_length=1)
+    source_start_ms: int = Field(alias="sourceStartMs", ge=0)
+    source_end_ms: int = Field(alias="sourceEndMs", gt=0)
+
+
+class CuratedMedia(ContractModel):
+    correct_clip: CuratedClip = Field(alias="correctClip")
+    error_clips: list[CuratedClip] = Field(alias="errorClips", default_factory=list)
+
+
 class VideoWorkflowRequest(ContractModel):
     request_id: str = Field(alias="requestId", min_length=1)
     source_video: SourceVideo = Field(alias="sourceVideo")
@@ -55,6 +67,7 @@ class VideoWorkflowRequest(ContractModel):
         default_factory=demo_lateral_raise_candidates,
         min_length=1,
     )
+    curated_media: CuratedMedia | None = Field(alias="curatedMedia", default=None)
 
 
 class TranscriptionSegment(ContractModel):

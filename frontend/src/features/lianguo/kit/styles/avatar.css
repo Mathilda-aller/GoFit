@@ -1,0 +1,18 @@
+.lianguo-avatar { width: 100%; max-width: 382px; height: auto; overflow: visible; }
+.lianguo-avatar-bob { transform-origin: 160px 230px; animation: lianguo-bob 2.8s steps(2, jump-none) infinite; }
+.lianguo-avatar-burst { transform-origin: 160px 213px; animation: lianguo-burst 0.78s steps(5, end) forwards; }
+
+@keyframes lianguo-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
+}
+
+@keyframes lianguo-burst {
+  from { opacity: 1; transform: scale(0.72); }
+  to { opacity: 0; transform: scale(1.24); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lianguo-avatar-bob,
+  .lianguo-avatar-burst { animation: none; }
+}
