@@ -2781,8 +2781,127 @@ p {
 }
 
 .douyin-page {
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0;
   color: var(--on-media);
   background: var(--media-canvas);
+}
+
+.douyin-header {
+  position: absolute;
+  top: max(14px, env(safe-area-inset-top));
+  right: 16px;
+  left: 16px;
+  z-index: 4;
+  min-height: 44px;
+  margin: 0;
+  pointer-events: none;
+}
+
+.douyin-header__title {
+  font-weight: 800;
+  text-shadow: 0 2px 16px oklch(0.08 0.02 130 / 0.55);
+}
+
+.douyin-header__counter {
+  position: absolute;
+  left: 50%;
+  padding: 5px 10px;
+  border-radius: var(--radius-full);
+  color: oklch(0.96 0.01 120);
+  background: oklch(0.12 0.02 130 / 0.4);
+  font-size: var(--text-12);
+  font-weight: 700;
+  transform: translateX(-50%);
+  backdrop-filter: blur(8px);
+}
+
+.douyin-header .icon-button,
+.douyin-slide__actions .icon-button {
+  border-color: oklch(0.98 0.01 120 / 0.18);
+  color: var(--on-media);
+  background: oklch(0.12 0.02 130 / 0.38);
+  box-shadow: 0 8px 22px oklch(0.08 0.02 130 / 0.2);
+  pointer-events: auto;
+  backdrop-filter: blur(8px);
+}
+
+.douyin-feed {
+  height: 100%;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scroll-snap-type: y mandatory;
+  scrollbar-width: none;
+}
+
+.douyin-feed::-webkit-scrollbar {
+  display: none;
+}
+
+.douyin-slide {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  background: var(--media-canvas);
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+.douyin-slide > video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.douyin-slide__scrim {
+  display: flex;
+  position: absolute;
+  inset: 0;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 100px 16px max(24px, calc(18px + env(safe-area-inset-bottom)));
+  background:
+    linear-gradient(to bottom, oklch(0.08 0.015 130 / 0.32), transparent 28%),
+    linear-gradient(to top, oklch(0.08 0.015 130 / 0.78), transparent 58%);
+  pointer-events: none;
+}
+
+.douyin-slide__copy {
+  min-width: 0;
+  padding-right: 2px;
+  pointer-events: auto;
+}
+
+.douyin-slide__copy strong {
+  display: block;
+  max-width: 26ch;
+  font-size: var(--text-18);
+  line-height: 1.45;
+  text-shadow: 0 2px 14px oklch(0.08 0.02 130 / 0.6);
+}
+
+.douyin-slide__copy p {
+  margin: 7px 0 0;
+  color: oklch(0.92 0.012 120);
+  font-size: var(--text-14);
+  text-shadow: 0 2px 12px oklch(0.08 0.02 130 / 0.65);
+}
+
+.douyin-open-button {
+  width: auto;
+  min-height: 46px;
+  margin-top: 16px;
+  padding-inline: 20px;
+}
+
+.douyin-slide__actions {
+  display: grid;
+  flex: 0 0 auto;
+  gap: 14px;
+  pointer-events: auto;
 }
 
 @keyframes breathe {
@@ -2831,6 +2950,11 @@ p {
     min-height: calc(100dvh - 44px);
     border: 1px solid var(--line);
     border-radius: 34px;
+  }
+
+  .douyin-page {
+    height: calc(100dvh - 44px);
+    border-radius: 33px;
   }
 
   .bottom-nav {

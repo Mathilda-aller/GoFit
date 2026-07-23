@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { demoCatalog, relatedPeerComments, videoWorkflowRequests } from "./demo-catalog";
-import { actionCards, experienceByExerciseId, getDemoExperience } from "./data";
+import { actionCards, demoVideos, experienceByExerciseId, getDemoExperience } from "./data";
 
 describe("demo catalog relationships", () => {
   it("contains five shoulder and five back actions with stable one-to-one video cards", () => {
@@ -22,6 +22,14 @@ describe("demo catalog relationships", () => {
       expect(experienceByExerciseId[item.exerciseId]?.groups.length).toBeGreaterThan(0);
     }
     expect(new Set(relatedPeerComments.map((comment) => comment.videoId)).size).toBe(4);
+  });
+
+  it("gives every feed item its own real source video", () => {
+    expect(demoVideos).toHaveLength(10);
+    expect(new Set(demoVideos.map((video) => video.previewUrl)).size).toBe(10);
+    for (const video of demoVideos) {
+      expect(video.previewUrl).toBe(`/api/v1/media/videos/${encodeURIComponent(video.assetFileName)}`);
+    }
   });
 
   it("resolves distinct mock experiences from frontend actions, business exercises, and video cards", () => {

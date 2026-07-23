@@ -24,42 +24,115 @@ import {
   VideoFrame,
 } from "../components";
 import type { ActionCardResponse } from "../domain";
-import { actionCards, demoVideos, demoVideoUrl, getDemoExperience, type DemoVideo } from "../mocks/data";
+import { actionCards, demoVideos, getDemoExperience, type DemoVideo } from "../mocks/data";
 import { useAppStore } from "../store";
 
 export function DouyinPage() {
   const navigate = useNavigate();
+  const { videoId = demoVideos[0]?.videoId } = useParams();
+  const feedRef = useRef<HTMLDivElement>(null);
+  const initialVideo = demoVideos.find((video) => video.videoId === videoId) ?? demoVideos[0];
+  const [activeVideoId, setActiveVideoId] = useState(initialVideo?.videoId);
+  const initialScrollDone = useRef(false);
+
+  useEffect(() => {
+    if (initialScrollDone.current) return;
+    const feed = feedRef.current;
+    const index = demoVideos.findIndex((video) => video.videoId === initialVideo?.videoId);
+    if (!feed || index < 0) return;
+    feed.scrollTop = index * feed.clientHeight;
+    initialScrollDone.current = true;
+  }, [initialVideo?.videoId]);
+
+  const handleFeedScroll = () => {
+    const feed = feedRef.current;
+    if (!feed || feed.clientHeight === 0) return;
+    const index = Math.max(0, Math.min(demoVideos.length - 1, Math.round(feed.scrollTop / feed.clientHeight)));
+    const nextVideo = demoVideos[index];
+    if (!nextVideo || nextVideo.videoId === activeVideoId) return;
+    setActiveVideoId(nextVideo.videoId);
+    navigate(`/demo/douyin/${nextVideo.videoId}`, { replace: true });
+  };
+
+  const activeIndex = Math.max(0, demoVideos.findIndex((video) => video.videoId === activeVideoId));
+
   return (
     <AppShell navigation={false}>
       <main className="page page--immersive douyin-page">
-        <div className="page-header">
-          <span style={{ fontWeight: 800 }}>抖音精选</span>
+        <div className="page-header douyin-header">
+          <span className="douyin-header__title">抖音精选</span>
+          <span className="douyin-header__counter">{activeIndex + 1} / {demoVideos.length}</span>
           <button className="icon-button" aria-label="更多"><MoreHorizontal size={20} /></button>
         </div>
-        <div className="video-frame" style={{ height: "calc(100dvh - 180px)", aspectRatio: "auto" }}>
-          <video src={demoVideoUrl} muted playsInline loop autoPlay preload="metadata" />
-          <div className="video-frame__scrim" style={{ paddingRight: 72 }}>
-            <strong style={{ fontSize: "1.1rem" }}>侧平举总是手臂酸？新手先记住这 3 点</strong>
-            <p>@GoFit Demo Coach</p>
-            <p>#练肩 #健身新手 #动作教学</p>
-          </div>
-          <div style={{ position: "absolute", right: 12, bottom: 26, display: "grid", gap: 14 }}>
-            {[Heart, MessageCircle, Bookmark].map((Icon, index) => (
-              <button key={index} className="icon-button" aria-label={["点赞", "评论", "收藏"][index]}>
-                <Icon size={21} />
-              </button>
-            ))}
-          </div>
+        <div className="douyin-feed" ref={feedRef} onScroll={handleFeedScroll}>
+          {demoVideos.map((video, index) => (
+            <DouyinFeedVideo
+              key={video.videoId}
+              video={video}
+              index={index}
+              active={video.videoId === activeVideoId}
+              onOpen={() => navigate(`/import/${video.videoId}`)}
+            />
+          ))}
         </div>
-        <button
-          className="button button--primary button--wide"
-          style={{ marginTop: 14 }}
-          onClick={() => navigate("/import/video_lateral_raise_demo")}
-        >
-          <Share2 size={19} />用练过打开
-        </button>
       </main>
     </AppShell>
+  );
+}
+
+function DouyinFeedVideo({
+  video,
+  index,
+  active,
+  onOpen,
+}: {
+  video: DemoVideo;
+  index: number;
+  active: boolean;
+  onOpen: () => void;
+}) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const element = videoRef.current;
+    if (!element) return;
+    if (active) {
+      void element.play().catch(() => undefined);
+    } else {
+      element.pause();
+    }
+  }, [active]);
+
+  return (
+    <section className="douyin-slide" aria-label={`视频 ${index + 1}，共 ${demoVideos.length} 条`}>
+      <video
+        ref={videoRef}
+        src={video.previewUrl}
+        poster={video.posterUrl}
+        muted
+        playsInline
+        loop
+        autoPlay={active}
+        preload={active ? "auto" : "metadata"}
+      />
+      <div className="douyin-slide__scrim">
+        <div className="douyin-slide__copy">
+          <strong>{video.title}</strong>
+          <p>@{video.creatorName}</p>
+          <p>#{video.actionName} #{video.bodyRegion} #动作教学</p>
+          <button className="button button--primary douyin-open-button" onClick={onOpen}>
+            <Share2 size={19} />用练过打开
+          </button>
+        </div>
+        <div className="douyin-slide__actions">
+          {[Heart, MessageCircle, Bookmark].map((Icon, actionIndex) => (
+            <button key={actionIndex} className="icon-button" aria-label={["点赞", "评论", "收藏"][actionIndex]}>
+              <Icon size={21} />
+            </button>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
 

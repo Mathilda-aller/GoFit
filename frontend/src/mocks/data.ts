@@ -163,7 +163,7 @@ export const demoVideos: DemoVideo[] = demoCatalog.map((item) => ({
   actionName: item.actionName,
   bodyRegion: item.bodyRegion,
   durationLabel: item.video.durationLabel,
-  previewUrl: demoVideoUrl,
+  previewUrl: `/api/v1/media/videos/${encodeURIComponent(item.video.assetFileName)}`,
   previewSecond: item.video.previewSecond,
   posterUrl: posterByVideoId[item.video.videoId],
   assetFileName: item.video.assetFileName,
